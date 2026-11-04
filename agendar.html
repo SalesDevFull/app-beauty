@@ -303,8 +303,8 @@ h2{font-size:28px;font-weight:600}
   const KEY = 'ag_pend_' + slug;
   const st = { b: null, servs: [], barb: 'qualquer', dia: hoje(), hora: null, ocup: {}, carregandoDia: false, enviando: false, erro: '', feito: null, pend: null, pago: false, confirmaDesistir: false, tela: '', metodo: '', gerando: false, erroPag: '', brick: null };
   // Ficha de saúde (as mesmas perguntas que a profissional vê na ficha da cliente).
-  const ANAM = [['alergia', 'Tenho alergia a cola, esmalte, látex, henna ou cosméticos'], ['olhos', 'Estou com problema nos olhos (irritação, conjuntivite, terçol) ou fiz cirurgia recente'],
-    ['lente', 'Uso lente de contato'], ['gestante', 'Estou grávida ou amamentando'], ['pele', 'Faço tratamento de pele, uso ácidos no rosto ou faço quimioterapia'], ['reacao', 'Já tive reação em procedimento de cílios ou sobrancelha']];
+  const ANAM = [['alergia', 'Tenho alergia a cola, esmalte, gel, látex, henna ou cosméticos'], ['olhos', 'Estou com problema nos olhos (irritação, conjuntivite, terçol) ou fiz cirurgia recente'],
+    ['lente', 'Uso lente de contato'], ['gestante', 'Estou grávida ou amamentando'], ['pele', 'Faço tratamento de pele, uso ácidos no rosto ou faço quimioterapia'], ['reacao', 'Já tive reação em procedimento de cílios, sobrancelha ou unhas'], ['unhas', 'Estou com micose, ferida, unha encravada ou infecção nas unhas']];
   st.ficha = { itens: [], obs: '', aceite: false }; st.regrasOk = false;
   try { const fa = JSON.parse(localStorage.getItem('ag_ficha') || 'null'); if (fa && Array.isArray(fa.itens)) { st.ficha.itens = fa.itens.filter((k) => ANAM.some((q) => q[0] === k)); st.ficha.obs = String(fa.obs || '').slice(0, 300); } } catch (e) { /* sem armazenamento */ }
   try { st.nome = localStorage.getItem('ag_nome') || ''; st.tel = localStorage.getItem('ag_tel') || ''; st.email = localStorage.getItem('ag_email') || ''; } catch (e) { st.nome = ''; st.tel = ''; st.email = ''; }

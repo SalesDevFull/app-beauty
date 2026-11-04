@@ -1,7 +1,7 @@
 {
   "name": "Fio a Fio",
   "short_name": "Fio a Fio",
-  "description": "Agenda, sinal e clientes do estúdio de cílios e sobrancelhas.",
+  "description": "Agenda, sinal e clientes do estúdio de cílios, sobrancelhas e unhas.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

@@ -247,6 +247,35 @@ begin
   end if;
 end $$;
 
+-- Fotos de antes e depois da cliente: bucket PRIVADO "fichas" (pasta "estúdio/cliente/arquivo").
+-- Só quem é da equipe do estúdio (dono ou profissional) vê, envia e apaga. A cliente e o público não veem.
+create or replace function public.membro_estudio(p_b text) returns boolean
+language plpgsql stable security definer set search_path = public as $$
+begin
+  if p_b !~ '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then return false; end if;
+  return public.meu_papel(p_b::uuid) is not null;
+end $$;
+revoke all on function public.membro_estudio(text) from public, anon;
+grant execute on function public.membro_estudio(text) to authenticated;
+
+do $$
+begin
+  if exists (select 1 from pg_namespace where nspname = 'storage') then
+    insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+      values ('fichas', 'fichas', false, 3145728, array['image/jpeg', 'image/webp', 'image/png'])
+      on conflict (id) do update set public = false, file_size_limit = 3145728, allowed_mime_types = array['image/jpeg', 'image/webp', 'image/png'];
+    execute 'drop policy if exists fichas_enviar on storage.objects';
+    execute $p$create policy fichas_enviar on storage.objects for insert to authenticated
+      with check (bucket_id = 'fichas' and public.membro_estudio((storage.foldername(name))[1]))$p$;
+    execute 'drop policy if exists fichas_ver on storage.objects';
+    execute $p$create policy fichas_ver on storage.objects for select to authenticated
+      using (bucket_id = 'fichas' and public.membro_estudio((storage.foldername(name))[1]))$p$;
+    execute 'drop policy if exists fichas_apagar on storage.objects';
+    execute $p$create policy fichas_apagar on storage.objects for delete to authenticated
+      using (bucket_id = 'fichas' and public.membro_estudio((storage.foldername(name))[1]))$p$;
+  end if;
+end $$;
+
 -- Dono: tudo. Barbeiro: clientes; agenda, comandas e vales só os dele; despesas não.
 drop policy if exists registros_membro on public.registros;
 drop policy if exists registros_dono on public.registros;
@@ -592,7 +621,7 @@ begin
     update registros set dados = dados || jsonb_build_object('anamnese', jsonb_build_object(
         'data', v_hoje,
         'itens', coalesce((select jsonb_agg(x) from jsonb_array_elements_text(case when jsonb_typeof(p_ficha -> 'itens') = 'array' then p_ficha -> 'itens' else '[]'::jsonb end) x
-                           where x in ('alergia', 'olhos', 'lente', 'gestante', 'pele', 'reacao')), '[]'::jsonb),
+                           where x in ('alergia', 'olhos', 'lente', 'gestante', 'pele', 'reacao', 'unhas')), '[]'::jsonb),
         'obs', left(trim(coalesce(p_ficha ->> 'obs', '')), 300),
         'aceite', coalesce(p_ficha ->> 'aceite', 'false') = 'true'))
     where barbearia_id = b.id and colecao = 'clientes' and id = v_cli;

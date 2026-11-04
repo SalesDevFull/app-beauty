@@ -665,7 +665,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   const linkPublico = () => { const base = location.origin + location.pathname.replace(/[^/]*$/, ''); return base + 'agendar.html?b=' + encodeURIComponent(S.slug || ''); };
 
   function abertura(sub) {
-    return '<div class="abertura"><div class="heroi">' + mascote('m-hero m-grande', 'Fio a Fio') + '</div><div class="marca-app"><div class="nome-app"><em>Fio a Fio</em></div><div class="marca-linha">cílios · sobrancelhas · beleza</div></div><div class="sub">' + sub + '</div></div>';
+    return '<div class="abertura"><div class="heroi">' + mascote('m-hero m-grande', 'Fio a Fio') + '</div><div class="marca-app"><div class="nome-app"><em>Fio a Fio</em></div><div class="marca-linha">cílios · sobrancelhas · unhas</div></div><div class="sub">' + sub + '</div></div>';
   }
 
   // Lê o valor direto do campo (o preenchimento automático do celular nem sempre avisa a página).
@@ -1037,8 +1037,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   }
 
   // Anamnese que a cliente respondeu no agendamento (ou que a profissional preencheu).
-  const ANAM = [['alergia', 'Alergia a cola, esmalte, látex, henna ou cosméticos'], ['olhos', 'Problema nos olhos agora (irritação, conjuntivite, terçol) ou cirurgia recente'],
-    ['lente', 'Usa lente de contato'], ['gestante', 'Está grávida ou amamentando'], ['pele', 'Tratamento de pele, ácidos no rosto ou quimioterapia'], ['reacao', 'Já teve reação em procedimento de cílios ou sobrancelha']];
+  const ANAM = [['alergia', 'Alergia a cola, esmalte, gel, látex, henna ou cosméticos'], ['olhos', 'Problema nos olhos agora (irritação, conjuntivite, terçol) ou cirurgia recente'],
+    ['lente', 'Usa lente de contato'], ['gestante', 'Está grávida ou amamentando'], ['pele', 'Tratamento de pele, ácidos no rosto ou quimioterapia'], ['reacao', 'Já teve reação em procedimento de cílios, sobrancelha ou unhas'], ['unhas', 'Micose, ferida, unha encravada ou infecção nas unhas']];
   function alertasCliente(cl) {
     const an = cl && cl.anamnese; if (!an) return [];
     const out = ANAM.filter((q) => (an.itens || []).indexOf(q[0]) >= 0).map((q) => q[1]);
@@ -1052,15 +1052,115 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     return '<div class="msg' + (al.length ? ' alerta-saude' : '') + '"><div class="tiny" style="font-weight:600;letter-spacing:.04em">FICHA DE SAÚDE · ' + esc(an.data ? fmtDia(an.data) : '') + (velha ? ' · peça pra atualizar' : '') + '</div>' +
       (al.length ? al.map((x) => '<div>⚠ ' + esc(x) + '</div>').join('') : '<div>Nada a observar.</div>') + (an.aceite ? '<div class="tiny">Autorizou o procedimento.</div>' : '') + '</div>';
   }
-  const TEC = [['tecnica', 'Técnica'], ['curvatura', 'Curvatura'], ['espessura', 'Espessura'], ['tamanhos', 'Tamanhos (mm)'], ['cola', 'Cola'], ['cor', 'Cor (henna / tintura)']];
+  const TEC = [['tecnica', 'Técnica'], ['curvatura', 'Curvatura'], ['espessura', 'Espessura'], ['tamanhos', 'Tamanhos (mm)'], ['cola', 'Cola'], ['cor', 'Cor (henna / tintura)'], ['formato', 'Unhas: formato e tamanho'], ['esmalte', 'Unhas: cor / esmalte']];
   function blocoTecnica(cl, editar) {
     const t = (cl && cl.tecnica) || {};
     if (!editar) {
       const fs = TEC.filter((k) => t[k[0]]).map((k) => k[1] + ': ' + esc(t[k[0]]));
       return fs.length ? '<div class="tiny">' + fs.join(' · ') + '</div>' : '';
     }
-    return '<span class="lbl">Ficha técnica</span><div class="grid2">' + TEC.map((k) => '<div class="field"><label for="tc-' + k[0] + '-' + esc(cl.id) + '">' + k[1] + '</label><input class="small" id="tc-' + k[0] + '-' + esc(cl.id) + '" data-f="tec_' + k[0] + '_' + esc(cl.id) + '" value="' + esc(fv('tec_' + k[0] + '_' + cl.id, t[k[0]] || '')) + '" placeholder="' + ({ tecnica: 'Volume brasileiro', curvatura: 'C, D, L…', espessura: '0,07', tamanhos: '9-10-11-12', cola: 'Secagem rápida', cor: 'Castanho médio' }[k[0]]) + '"></div>').join('') + '</div>';
+    return '<span class="lbl">Ficha técnica</span><div class="grid2">' + TEC.map((k) => '<div class="field"><label for="tc-' + k[0] + '-' + esc(cl.id) + '">' + k[1] + '</label><input class="small" id="tc-' + k[0] + '-' + esc(cl.id) + '" data-f="tec_' + k[0] + '_' + esc(cl.id) + '" value="' + esc(fv('tec_' + k[0] + '_' + cl.id, t[k[0]] || '')) + '" placeholder="' + ({ tecnica: 'Volume brasileiro', curvatura: 'C, D, L…', espessura: '0,07', tamanhos: '9-10-11-12', cola: 'Secagem rápida', cor: 'Castanho médio', formato: 'Amendoada, média', esmalte: 'Nude rosado' }[k[0]]) + '"></div>').join('') + '</div>';
   }
+  // Serviços prontos por área: a dona adiciona o pacote inteiro com um toque (os que já existem pelo nome ficam de fora).
+  const PACOTES = {
+    cilios: ['Cílios', [
+      { nome: 'Extensão fio a fio', preco: 150, dur: 120, custo: 15, retorno: 21, desc: 'Aplicação completa, efeito natural.' },
+      { nome: 'Volume brasileiro', preco: 170, dur: 120, custo: 18, retorno: 21, desc: 'Mais volume, fios em Y.' },
+      { nome: 'Volume russo', preco: 200, dur: 150, custo: 20, retorno: 21, desc: 'Efeito marcante, leques feitos à mão.' },
+      { nome: 'Manutenção de cílios', preco: 100, dur: 90, custo: 10, retorno: 21, desc: 'Válida até 21 dias da última aplicação.' },
+      { nome: 'Lash lifting', preco: 120, dur: 60, custo: 10, retorno: 45, desc: 'Curva os seus cílios naturais. Dura de 4 a 6 semanas.' },
+      { nome: 'Remoção de extensão', preco: 40, dur: 30, custo: 3, retorno: 0, desc: '' }]],
+    sobrancelhas: ['Sobrancelhas', [
+      { nome: 'Design de sobrancelha', preco: 45, dur: 40, custo: 2, retorno: 20, desc: '' },
+      { nome: 'Design com henna', preco: 60, dur: 50, custo: 4, retorno: 20, desc: 'Inclui teste de sensibilidade na primeira vez.' },
+      { nome: 'Brow lamination', preco: 130, dur: 60, custo: 10, retorno: 45, desc: 'Fios alinhados e mais volume na sobrancelha.' },
+      { nome: 'Buço com linha', preco: 20, dur: 15, custo: 1, retorno: 20, desc: '' }]],
+    unhas: ['Unhas', [
+      { nome: 'Manicure', preco: 35, dur: 40, custo: 3, retorno: 7, desc: 'Cutilagem e esmaltação comum.' },
+      { nome: 'Pedicure', preco: 40, dur: 45, custo: 3, retorno: 14, desc: '' },
+      { nome: 'Pé e mão', preco: 70, dur: 80, custo: 6, retorno: 14, desc: '' },
+      { nome: 'Esmaltação em gel', preco: 70, dur: 60, custo: 6, retorno: 21, desc: 'Brilho e duração de até 3 semanas.' },
+      { nome: 'Banho de gel', preco: 120, dur: 90, custo: 12, retorno: 21, desc: 'Camada de gel sobre a unha natural, sem alongar.' },
+      { nome: 'Alongamento em gel', preco: 180, dur: 150, custo: 20, retorno: 21, desc: 'Unhas alongadas com molde ou tips.' },
+      { nome: 'Alongamento em fibra de vidro', preco: 200, dur: 180, custo: 22, retorno: 21, desc: 'Acabamento fino e natural.' },
+      { nome: 'Manutenção do alongamento', preco: 110, dur: 90, custo: 10, retorno: 21, desc: 'Até 21 dias da aplicação.' },
+      { nome: 'Remoção de gel', preco: 40, dur: 40, custo: 3, retorno: 0, desc: '' }]]
+  };
+
+  // ---------- Fotos de antes e depois (privadas: bucket "fichas", pasta estúdio/cliente) ----------
+  const FC_MAX = 24;
+  S.fc = {};
+  async function carregarFotosCliente(clId, forcar) {
+    if (!S.sb || !clId || (S.fc[clId] && !forcar)) return;
+    S.fc[clId] = Object.assign({}, S.fc[clId] || { lista: [] }, { carregando: true });
+    try {
+      const pasta = S.bid + '/' + clId;
+      const r = await S.sb.storage.from('fichas').list(pasta, { limit: 100, sortBy: { column: 'name', order: 'asc' } });
+      if (r.error) throw r.error;
+      const nomes = (r.data || []).filter((o) => o && o.name && /\.jpg$/.test(o.name)).map((o) => o.name);
+      let urls = [];
+      if (nomes.length) {
+        const u = await S.sb.storage.from('fichas').createSignedUrls(nomes.map((n) => pasta + '/' + n), 3600);
+        if (u.error) throw u.error; urls = u.data || [];
+      }
+      S.fc[clId] = { carregando: false, lista: nomes.map((n, i) => { const m = /^(\d+)-(antes|depois)/.exec(n) || []; return { caminho: pasta + '/' + n, url: (urls[i] && urls[i].signedUrl) || '', tipo: m[2] || 'depois', ts: Number(m[1]) || 0 }; }) };
+    } catch (e) { S.fc[clId] = { carregando: false, lista: [], erro: true }; }
+    scheduleRender();
+  }
+  function blocoFotosCliente(cl) {
+    const st = S.fc[cl.id];
+    if (!st) { setTimeout(() => carregarFotosCliente(cl.id), 0); }
+    const lista = (st && st.lista) || []; const env = S.ui.fcEnv && S.ui.fcEnv.cli === cl.id ? S.ui.fcEnv : null;
+    let h = '<span class="lbl">Fotos de antes e depois</span>';
+    if (!st || st.carregando) h += '<span class="tiny">Carregando fotos…</span>';
+    else if (st.erro) h += '<span class="tiny c-bad">Não deu pra carregar as fotos.</span>';
+    else if (!lista.length) h += '<span class="tiny">Nenhuma foto ainda. Tire uma antes e outra depois do procedimento: ajuda a comparar na manutenção.</span>';
+    ['antes', 'depois'].forEach((tp) => {
+      const fs = lista.filter((f) => f.tipo === tp).sort((a, b) => b.ts - a.ts);
+      if (!fs.length) return;
+      h += '<div class="tiny" style="font-weight:600;margin-top:4px">' + (tp === 'antes' ? 'ANTES' : 'DEPOIS') + '</div><div class="fotos-grid">' + fs.map((f) => '<div class="foto"><a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img src="' + esc(f.url) + '" alt="Foto ' + tp + ' de ' + esc(cl.nome) + '" loading="lazy"></a>' +
+        (f.ts ? '<span class="leg">' + esc(fmtDia(new Date(f.ts).toISOString().slice(0, 10))) + '</span>' : '') +
+        '<button type="button" class="x' + (S.ui.confirm === 'fc' + f.caminho ? ' conf' : '') + '" data-act="fcApagar" data-cli="' + esc(cl.id) + '" data-c="' + esc(f.caminho) + '" aria-label="Apagar foto">' + (S.ui.confirm === 'fc' + f.caminho ? 'Apagar?' : '✕') + '</button></div>').join('') + '</div>';
+    });
+    if (env) h += '<div class="msg">Enviando foto ' + Math.min(env.feito + 1, env.total) + ' de ' + env.total + '…</div>';
+    else if (st && !st.carregando && !st.erro && lista.length < FC_MAX) {
+      h += '<div class="grid2">' + ['antes', 'depois'].map((tp) => '<label class="btn" for="fc-' + tp + '-' + esc(cl.id) + '" role="button" tabindex="0">+ Foto de ' + tp + '</label><input type="file" id="fc-' + tp + '-' + esc(cl.id) + '" class="fc-file" data-cli="' + esc(cl.id) + '" data-tipo="' + tp + '" accept="image/*" multiple hidden>').join('') + '</div>' +
+        '<span class="tiny">Fotos privadas: só a equipe do estúdio vê. Peça autorização da cliente antes de postar em rede social.</span>';
+    }
+    return h;
+  }
+  async function enviarFotosCliente(files, clId, tipo) {
+    const lista = Array.from(files || []).filter((f) => /^image\//.test(f.type));
+    if (!lista.length) { toast('Escolha fotos (JPG ou PNG).', true); return; }
+    const livres = FC_MAX - ((S.fc[clId] && S.fc[clId].lista) || []).length;
+    if (lista.length > livres) { toast('Cabem só mais ' + livres + ' foto' + (livres === 1 ? '' : 's') + ' nesta ficha.', true); lista.length = Math.max(0, livres); }
+    S.ui.fcEnv = { cli: clId, feito: 0, total: lista.length }; render();
+    let ok = 0;
+    for (const f of lista) {
+      try {
+        const blob = await comprimirFoto(f); if (!blob) throw new Error('foto');
+        const caminho = S.bid + '/' + clId + '/' + Date.now() + '-' + tipo + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+        const up = await S.sb.storage.from('fichas').upload(caminho, blob, { contentType: 'image/jpeg', upsert: false });
+        if (up.error) throw up.error; ok++;
+      } catch (e) { toast('Uma foto não foi enviada. Tente de novo.', true); }
+      S.ui.fcEnv.feito++; render();
+    }
+    S.ui.fcEnv = null;
+    await carregarFotosCliente(clId, true);
+    if (ok) toast(ok === 1 ? 'Foto salva na ficha' : ok + ' fotos salvas na ficha');
+  }
+  document.addEventListener('change', (e) => { const t = e.target; if (t.classList && t.classList.contains('fc-file') && t.files && t.files.length) enviarFotosCliente(t.files, t.dataset.cli, t.dataset.tipo); });
+  document.addEventListener('keydown', (e) => { const t = e.target; const f = t.getAttribute && t.getAttribute('for'); if ((e.key === 'Enter' || e.key === ' ') && f && /^fc-/.test(f)) { e.preventDefault(); const i = document.getElementById(f); if (i) i.click(); } });
+  async function apagarFotosCliente(clId) {
+    try {
+      const pasta = S.bid + '/' + clId;
+      const r = await S.sb.storage.from('fichas').list(pasta, { limit: 100 });
+      const cs = ((r && r.data) || []).map((o) => pasta + '/' + o.name);
+      if (cs.length) await S.sb.storage.from('fichas').remove(cs);
+    } catch (e) { /* fica pra próxima */ }
+    delete S.fc[clId];
+  }
+
   function vClientes() {
     const t = today();
     let list = S.clientes.slice();
@@ -1081,7 +1181,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
         const msgVolta = 'Oi, ' + primeiroNome(cl.nome) + '! Faz um tempo que você não vem no ' + cfg().nome + ' e eu tô com saudade 💕 Quer marcar? Tenho horário essa semana: ' + linkPublico();
         const wa = waLink(cl.telefone, sm ? msgVolta : 'Oi, ' + primeiroNome(cl.nome) + '! ');
         h += '<div class="tiny">WhatsApp: <span style="user-select:text">' + esc(cl.telefone || 'não informado') + '</span></div>' +
-          blocoAnamnese(cl) + blocoTecnica(cl, true) +
+          blocoAnamnese(cl) + blocoTecnica(cl, true) + blocoFotosCliente(cl) +
           '<div class="field"><label for="ficha-' + esc(cl.id) + '">Observações (preferências, cuidados)</label><textarea id="ficha-' + esc(cl.id) + '" data-f="ficha_' + esc(cl.id) + '">' + esc(fv('ficha_' + cl.id, cl.ficha || '')) + '</textarea></div>' +
           '<div class="grid2"><button type="button" class="btn" data-act="cliFicha" data-id="' + esc(cl.id) + '">Salvar ficha</button><button type="button" class="btn pri" data-act="cliAgendar" data-id="' + esc(cl.id) + '">Agendar</button></div>' +
           (wa ? '<a class="btn ok full" href="' + esc(wa) + '" target="_blank" rel="noopener">' + (sm ? 'Chamar de volta no WhatsApp' : 'Mandar mensagem no WhatsApp') + '</a>' : '') +
@@ -1270,6 +1370,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
           (quanto ? '<span class="lbl">A profissional recebe</span><div>' + quanto + '</div>' : '') +
           '<button type="button" class="btn bad sm" data-act="svApagar" data-id="' + i + '">' + conf('sv' + s.id, 'Remover serviço') + '</button></section>';
       });
+      h += '<section class="card"><span class="h2">Serviços prontos</span><span class="sub">Adiciona de uma vez os serviços mais comuns de cada área, com preço, duração e prazo de volta sugeridos. Os que você já tem ficam de fora. Depois é só ajustar.</span><div class="stack">' + Object.keys(PACOTES).map((k) => '<button type="button" class="btn" data-act="svPacote" data-v="' + k + '">+ ' + PACOTES[k][0] + ' (' + PACOTES[k][1].length + ' serviços)</button>').join('') + '</div></section>';
       h += '<section class="card"><span class="h2">Novo serviço</span><div class="field"><label for="ns-nome">Nome</label><input id="ns-nome" data-f="nsNome" value="' + esc(fv('nsNome')) + '"></div><div class="grid2"><div class="field"><label for="ns-preco">Preço (R$)</label><input id="ns-preco" inputmode="decimal" data-f="nsPreco" value="' + esc(fv('nsPreco')) + '"></div><div class="field"><label for="ns-dur">Duração (min)</label><input id="ns-dur" inputmode="numeric" data-f="nsDur" value="' + esc(fv('nsDur', '30')) + '"></div></div><button type="button" class="btn pri" data-act="svNovo">Adicionar serviço</button></section>';
     }
     if (g === 'pagamentos') {
@@ -1754,7 +1855,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     bbRegrasSalvar: async () => { const c = cfg(); const ok = await salvarCfg({ regras: String(fv('bbRegras', c.regras || '')).trim().slice(0, 600), cuidados: String(fv('bbCuidados', c.cuidados || '')).trim().slice(0, 600), anamnese: { ativa: fv('bbAnam', (c.anamnese || {}).ativa ? '1' : '0') === '1' } }); if (ok) toast('Regras e cuidados salvos'); },
     marcarRetorno: () => { const u = S.ui.ultima; if (!u) return; const cl = S.clientes.find((c) => c.id === u.clienteId); S.ui.bk = { serv: null, barb: u.barbId || 'qualquer', dia: addDays(today(), u.retorno), hora: null, feito: null }; S.f.bkNome = cl ? cl.nome : (u.cliente || ''); S.f.bkTel = (cl && cl.telefone) || u.tel || ''; go('agendar'); },
     cliAgendar: (el) => { const cl = S.clientes.find((c) => c.id === el.dataset.id); if (!cl) return; S.ui.bk = { serv: null, barb: 'qualquer', dia: today(), hora: null, feito: null }; S.f.bkNome = cl.nome; S.f.bkTel = cl.telefone || ''; go('agendar'); },
-    cliApagar: async (el) => { if (precisaConfirmar('cla' + el.dataset.id)) return; const ok = await W(() => col('clientes').doc(el.dataset.id).delete(), 'Cliente apagado'); if (ok) S.ui.cliAberto = null; },
+    cliApagar: async (el) => { if (precisaConfirmar('cla' + el.dataset.id)) return; const id = el.dataset.id; const ok = await W(() => col('clientes').doc(id).delete(), 'Cliente apagado'); if (ok) { S.ui.cliAberto = null; apagarFotosCliente(id); } },
     cliNovo: async () => {
       const nome = String(fv('ncNome')).trim(); const tel = String(fv('ncTel')).trim();
       if (!nome || digits(tel).length < 10) { toast('Informe o nome e o WhatsApp com DDD.', true); return; }
@@ -1785,6 +1886,21 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       if (ok) { ['npNome', 'npPreco', 'npCusto', 'npQtd'].forEach((k) => { S.f[k] = ''; }); render(); }
     },
     svApagar: async (el) => { const i = Number(el.dataset.id); const s = cfg().servicos[i]; if (!s || precisaConfirmar('sv' + s.id)) return; const n = cfg().servicos.slice(); n.splice(i, 1); await salvarCfg({ servicos: n }); },
+    fcApagar: async (el) => {
+      const c = el.dataset.c, cli = el.dataset.cli; if (precisaConfirmar('fc' + c)) return;
+      const r = await S.sb.storage.from('fichas').remove([c]);
+      if (r.error) { toast('Não deu pra apagar essa foto.', true); return; }
+      if (S.fc[cli]) S.fc[cli].lista = S.fc[cli].lista.filter((f) => f.caminho !== c);
+      toast('Foto apagada'); render();
+    },
+    svPacote: async (el) => {
+      const pk = PACOTES[el.dataset.v]; if (!pk) return;
+      const atuais = cfg().servicos || []; const tem = (n) => atuais.some((x) => String(x.nome).trim().toLowerCase() === n.toLowerCase());
+      const novos = pk[1].filter((x) => !tem(x.nome)).map((x) => Object.assign({ id: newId() }, x));
+      if (!novos.length) { toast('Os serviços de ' + pk[0].toLowerCase() + ' já estão na lista.'); return; }
+      const ok = await salvarCfg({ servicos: atuais.concat(novos) });
+      if (ok) toast(novos.length + ' serviço' + (novos.length === 1 ? '' : 's') + ' de ' + pk[0].toLowerCase() + ' adicionado' + (novos.length === 1 ? '' : 's') + '. Ajuste os preços!');
+    },
     svNovo: async () => {
       const nome = String(fv('nsNome')).trim(); const preco = num(fv('nsPreco'));
       if (!nome || !preco) { toast('Informe nome e preço do serviço.', true); return; }

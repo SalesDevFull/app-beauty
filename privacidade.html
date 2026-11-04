@@ -32,21 +32,24 @@
     <thead><tr><th>De quem</th><th>Quais dados</th><th>Para quê</th></tr></thead>
     <tbody>
       <tr><td>Cliente que agenda</td><td>Nome, WhatsApp, serviços, data e horário, sinal pago</td><td>Marcar o horário, o estúdio entrar em contato, mandar lembrete, mostrar o histórico de visitas</td></tr>
+      <tr><td>Cliente que agenda (se o estúdio usar a ficha de saúde)</td><td>Respostas sobre alergias, olhos, lentes, gravidez, pele, unhas e reações anteriores, observações e o aceite do procedimento</td><td>Fazer o procedimento com segurança e registrar o consentimento da cliente</td></tr>
+      <tr><td>Cliente atendida</td><td>Fotos de antes e depois e a ficha técnica (técnica, materiais e medidas usados)</td><td>Acompanhar o resultado e repetir o trabalho na manutenção</td></tr>
       <tr><td>Dona e equipe</td><td>E-mail, senha (guardada de forma cifrada), nome na agenda, comissões e vales</td><td>Entrar no app, separar o que cada pessoa vê, calcular ganhos</td></tr>
       <tr><td>Estúdio</td><td>Nome, endereço, WhatsApp, Instagram, logo, chave Pix, fotos dos trabalhos</td><td>Montar a página de agendamento e receber o sinal</td></tr>
       <tr><td>Quem ativa avisos</td><td>Endereço técnico do aviso no celular</td><td>Mandar aviso de agendamento novo e sinal pago</td></tr>
     </tbody>
   </table>
   <p>Dados do cartão de crédito não passam pelo Fio a Fio: são digitados direto no formulário do Mercado Pago.</p>
+  <p>As respostas da ficha de saúde são dados sensíveis pela LGPD. Elas só são guardadas quando a cliente marca que autoriza, e só a equipe do estúdio onde ela agendou pode vê-las. As fotos de antes e depois ficam num espaço privado, que nem a página de agendamento nem outras pessoas conseguem abrir.</p>
 
   <h2>3. Base legal</h2>
-  <p>Usamos os dados para cumprir o contrato (fazer o agendamento e o app funcionarem), pelo interesse legítimo do estúdio em atender e lembrar seus clientes, e para cumprir obrigações legais. A cliente pode pedir ao estúdio para não receber lembretes.</p>
+  <p>Usamos os dados para cumprir o contrato (fazer o agendamento e o app funcionarem), pelo interesse legítimo do estúdio em atender e lembrar seus clientes, e para cumprir obrigações legais. A ficha de saúde e as fotos de antes e depois usam o consentimento da cliente, que pode pedir ao estúdio para apagá-las. A cliente pode pedir ao estúdio para não receber lembretes.</p>
 
   <h2>4. Com quem compartilhamos</h2>
   <ul>
     <li><b>O estúdio</b> onde você agendou (e só ela, nunca outros estúdios).</li>
     <li><b>Mercado Pago</b>, quando há pagamento de sinal, para processar o Pix ou o cartão.</li>
-    <li><b>Supabase</b> (banco de dados) e <b>Vercel</b> (hospedagem), que guardam e servem o app. Esses serviços podem manter os dados em servidores fora do Brasil, com proteções contratuais exigidas pela LGPD.</li>
+    <li><b>Supabase</b> (banco de dados) e <b>Cloudflare</b> (hospedagem), que guardam e servem o app. Esses serviços podem manter os dados em servidores fora do Brasil, com proteções contratuais exigidas pela LGPD.</li>
     <li>Serviços de aviso no celular (Google, Apple, Mozilla), só para entregar a notificação.</li>
   </ul>
   <p>Não vendemos dados pessoais e não usamos os dados das clientes dos estúdios para publicidade.</p>
