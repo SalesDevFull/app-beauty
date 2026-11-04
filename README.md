@@ -25,6 +25,14 @@ Este projeto começou como uma cópia do **Degradê** (app de barbearias, reposi
 
 **Fotos de antes e depois.** Na ficha da cliente, a equipe tira fotos de antes e de depois (até 24 por cliente). Elas ficam num armazenamento privado: só quem é do estúdio vê, por links que expiram em 1 hora. Quando a cliente é apagada, as fotos são apagadas junto.
 
+**Estoque.** Em Gestão → Estoque ficam os materiais de uso no estúdio (cola, fios, henna, gel…) e os produtos à venda (sérum, kit de manutenção…).
+- Estoque mínimo por item, com o aviso "repor" e uma lista de compras para copiar ou mandar no WhatsApp.
+- Validade do item lacrado e "dura depois de aberto" (a cola de cílios vale de 4 a 6 semanas aberta). O botão "Abri um novo hoje" calcula quando vence.
+- "Gasta por atendimento": quanto cada serviço consome de cada material. O app dá baixa sozinho ao fechar a comanda.
+- "Chegou compra" soma ao estoque, atualiza o custo e pode lançar a despesa.
+- Produtos à venda aparecem na comanda e saem do estoque quando são vendidos.
+- Pacotes de materiais comuns de Cílios, Sobrancelhas e Unhas, e um card de alerta no Início.
+
 ## Visual
 
 - Tons nude e rosé, com tema claro por padrão e tema escuro opcional
@@ -46,6 +54,7 @@ Agenda por profissional, sinal no Pix/cartão pelo Mercado Pago de cada estúdio
 - [ ] Planos e chave Pix no painel administrativo
 - [x] Fotos de antes e depois na ficha da cliente (privadas)
 - [x] Serviços de unhas e pergunta de unhas na ficha de saúde
+- [x] Estoque de materiais e produtos, com validade, mínimo e baixa automática
 - [ ] Revisar `docs/INSTALACAO.md`, que ainda fala em barbearia
 
 O guia técnico herdado do Degradê está em `docs/INSTALACAO.md`.

@@ -637,7 +637,9 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     const ok = await W(async () => {
       await col('comandas').doc(c.id).update({ status: 'fechada', total: total, comissao: comissao, data: today(), fechadaEm: new Date().toISOString() });
       const cnt = {}; itens.filter((i) => i.tipo === 'p').forEach((i) => { cnt[i.id] = (cnt[i.id] || 0) + 1; });
-      for (const pid in cnt) { const p = S.produtos.find((x) => x.id === pid); if (p) await col('produtos').doc(pid).update({ qtd: Math.max(0, num(p.qtd) - cnt[pid]) }); }
+      // Materiais de uso: baixa pelo "gasta por atendimento" de cada serviço feito.
+      itens.filter((i) => i.tipo !== 'p').forEach((i) => { (S.produtos || []).forEach((p) => { const q = num((p.consumo || {})[i.id]); if (q > 0) cnt[p.id] = (cnt[p.id] || 0) + q; }); });
+      for (const pid in cnt) { const p = S.produtos.find((x) => x.id === pid); if (p && contado(p)) await col('produtos').doc(pid).update({ qtd: Math.max(0, Math.round((num(p.qtd) - cnt[pid]) * 100) / 100) }); }
       if (c.agendamentoId && S.ags.find((a) => a.id === c.agendamentoId)) await col('agendamentos').doc(c.agendamentoId).update({ status: 'feito' });
       if (c.clienteId) { const cl = S.clientes.find((x) => x.id === c.clienteId); if (cl) await col('clientes').doc(cl.id).update({ ultimaVisita: today(), visitas: num(cl.visitas) + 1 }); }
     }, 'Comanda fechada: ' + brl(total));
@@ -835,6 +837,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     h += '</section>';
     h += cardLembretes(null);
     h += cardManutencao(null);
+    h += cardEstoque();
     h += '<div class="grid3">' +
       '<button type="button" class="btn' + (naCadeira.length ? '' : ' pri') + '" data-act="go" data-v="agendar">Agendar</button>' +
       '<button type="button" class="btn" data-act="novaComandaAtalho">Comanda</button>' +
@@ -1024,10 +1027,12 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     itens.forEach((i, idx) => { h += '<div class="item"><span class="grow">' + esc(i.nome) + (i.tipo === 'p' ? ' <span class="tiny">(produto)</span>' : '') + '</span><span class="num" style="font-weight:500">' + brl(i.preco) + '</span><button type="button" class="btn sm" data-act="cmRemover" data-id="' + esc(x.id) + '" data-v="' + idx + '" aria-label="Remover ' + esc(i.nome) + '">✕</button></div>'; });
     h += '<div class="row between"><span class="sub">Total</span><span class="big num">' + brl(total) + '</span></div>' +
       (sinal ? '<div class="row between"><span class="sub">Sinal já pago no Pix</span><span class="num c-ok">− ' + brl(sinal) + '</span></div><div class="row between"><span class="sub">Falta receber</span><span class="mid num">' + brl(falta) + '</span></div>' : '') +
-      '<span class="tiny c-acc">' + esc(b ? primeiroNome(b.nome) : 'O barbeiro') + ' recebe ' + brl(com) + ' (' + (b ? num(b.com) : 40) + '% do valor' + (itens.some((i) => i.tipo === 'p') ? ', ' + (b && b.comProd != null ? num(b.comProd) : 10) + '% nos produtos' : '') + ')</span></section>';
+      '<span class="tiny c-acc">' + esc(b ? primeiroNome(b.nome) : 'A profissional') + ' recebe ' + brl(com) + ' (' + (b ? num(b.com) : 40) + '% do valor' + (itens.some((i) => i.tipo === 'p') ? ', ' + (b && b.comProd != null ? num(b.comProd) : 10) + '% nos produtos' : '') + ')</span></section>';
     h += '<section class="stack"><span class="lbl">Serviços</span><div class="grid2">';
     (c.servicos || []).forEach((s) => { h += '<button type="button" class="pick" data-act="cmAdd" data-id="' + esc(x.id) + '" data-v="s:' + esc(s.id) + '"><b>' + esc(s.nome) + '</b><span>' + brl(s.preco) + '</span></button>'; });
     h += '</div>';
+    const pv = (S.produtos || []).filter((p) => tipoProd(p) === 'venda');
+    if (pv.length) { h += '<span class="lbl">Produtos à venda</span><div class="grid2">'; pv.forEach((p) => { h += '<button type="button" class="pick" data-act="cmAdd" data-id="' + esc(x.id) + '" data-v="p:' + esc(p.id) + '"' + (contado(p) && num(p.qtd) <= 0 ? ' disabled' : '') + '><b>' + esc(p.nome) + '</b><span>' + brl(p.preco) + (contado(p) ? ' · ' + fmtQ(p.qtd) + ' no estoque' : '') + '</span></button>'; }); h += '</div>'; }
     h += '</section>';
     h += '<section class="stack"><span class="lbl">Pagamento</span><div class="grid3">' + formas().map((p) => '<button type="button" class="chip' + (x.pagamento === p ? ' on' : '') + '" data-act="cmPag" data-id="' + esc(x.id) + '" data-v="' + p + '" aria-pressed="' + (x.pagamento === p) + '">' + p + '</button>').join('') + '</div>' +
       '<div class="field"><label for="cm-gorj">Gorjeta pra profissional (R$)</label><input id="cm-gorj" inputmode="decimal" data-chg="cmGorj" data-id="' + esc(x.id) + '" value="' + (num(x.gorjeta) || '') + '" placeholder="0"></div></section>';
@@ -1086,6 +1091,125 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       { nome: 'Manutenção do alongamento', preco: 110, dur: 90, custo: 10, retorno: 21, desc: 'Até 21 dias da aplicação.' },
       { nome: 'Remoção de gel', preco: 40, dur: 40, custo: 3, retorno: 0, desc: '' }]]
   };
+
+  // ---------- Estoque: materiais de uso no estúdio e produtos à venda ----------
+  // Cola de cílios dura de 4 a 6 semanas depois de aberta: "dura aberto (dias)" + "abri um novo" calcula o vencimento.
+  const UNS = ['un', 'frasco', 'caixa', 'pacote', 'ml', 'g'];
+  const MATERIAIS = {
+    cilios: ['Cílios', [
+      { nome: 'Cola para extensão de cílios', un: 'frasco', min: 1, duraAberto: 42 },
+      { nome: 'Fios de cílios', un: 'caixa', min: 2 },
+      { nome: 'Primer', un: 'frasco', min: 1 },
+      { nome: 'Removedor de cola', un: 'frasco', min: 1 },
+      { nome: 'Fita micropore', un: 'un', min: 2 },
+      { nome: 'Patches de gel', un: 'pacote', min: 1 },
+      { nome: 'Microbrush', un: 'pacote', min: 1 },
+      { nome: 'Kit de lash lifting', un: 'un', min: 1, duraAberto: 90 }]],
+    sobrancelhas: ['Sobrancelhas', [
+      { nome: 'Henna', un: 'un', min: 2 },
+      { nome: 'Tintura de sobrancelha', un: 'un', min: 1 },
+      { nome: 'Kit de brow lamination', un: 'un', min: 1, duraAberto: 90 },
+      { nome: 'Linha para depilação', un: 'un', min: 1 },
+      { nome: 'Cera', un: 'un', min: 1 }]],
+    unhas: ['Unhas', [
+      { nome: 'Base em gel', un: 'frasco', min: 1 },
+      { nome: 'Top coat', un: 'frasco', min: 1 },
+      { nome: 'Gel construtor', un: 'un', min: 1 },
+      { nome: 'Fibra de vidro', un: 'pacote', min: 1 },
+      { nome: 'Lixas', un: 'pacote', min: 1 },
+      { nome: 'Acetona / removedor', un: 'frasco', min: 1 },
+      { nome: 'Algodão', un: 'pacote', min: 1 },
+      { nome: 'Palitos e espátulas', un: 'pacote', min: 1 }]]
+  };
+  const contado = (p) => p.qtd !== null && p.qtd !== undefined && p.qtd !== '';
+  const fmtQ = (q) => String(Math.round(num(q) * 100) / 100).replace('.', ',');
+  const tipoProd = (p) => p.tipo || 'venda';
+  function validadeProd(p) {
+    const ds = [];
+    if (p.validade) ds.push(p.validade);
+    if (p.abertoEm && num(p.duraAberto) > 0) ds.push(addDays(p.abertoEm, num(p.duraAberto)));
+    return ds.length ? ds.sort()[0] : null;
+  }
+  function situacaoProd(p) {
+    const v = validadeProd(p); const d = v ? diffDays(today(), v) : null;
+    return { repor: contado(p) && num(p.qtd) <= num(p.min), vence: d !== null && d <= 15 ? v : null, dias: d };
+  }
+  const txtVence = (d) => (d < 0 ? 'venceu' : d === 0 ? 'vence hoje' : 'vence em ' + d + ' dia' + (d === 1 ? '' : 's'));
+  function alertasEstoque() {
+    const rep = [], ven = [];
+    (S.produtos || []).forEach((p) => { const s = situacaoProd(p); if (s.repor) rep.push(p); if (s.vence) ven.push(Object.assign({ _dias: s.dias }, p)); });
+    ven.sort((a, b) => a._dias - b._dias);
+    return { rep: rep, ven: ven };
+  }
+  function textoCompras() {
+    return 'Lista de compras · ' + cfg().nome + '\n' + alertasEstoque().rep.map((p) => '• ' + p.nome + ' (tenho ' + fmtQ(p.qtd) + ' ' + (p.un || 'un') + ')').join('\n');
+  }
+  function cardEstoque() {
+    const a = alertasEstoque(); if (!a.rep.length && !a.ven.length) return '';
+    let h = '<section class="card"><div class="row between"><span class="h2">Estoque</span><button type="button" class="btn sm" data-act="gesTabGo" data-v="estoque">Ver</button></div>';
+    a.ven.slice(0, 3).forEach((p) => { h += '<div class="item"><span class="grow">' + esc(p.nome) + '</span><span class="tiny c-bad" style="font-weight:600">' + txtVence(p._dias) + '</span></div>'; });
+    if (a.rep.length) h += '<div class="item"><span class="grow">' + a.rep.length + (a.rep.length === 1 ? ' item' : ' itens') + ' pra repor</span><span class="tiny c-warn" style="font-weight:600">' + esc(a.rep.slice(0, 2).map((p) => p.nome).join(', ')) + (a.rep.length > 2 ? '…' : '') + '</span></div>';
+    return h + '</section>';
+  }
+  function formProd(p) {
+    const id = p.id; const k = (c, d) => fv('ep_' + c + '_' + id, d);
+    const tipo = k('tipo', tipoProd(p)); const sel = (a, b) => (a === b ? ' selected' : '');
+    let h = '<div class="grid2"><div class="field"><label for="ep-tipo-' + esc(id) + '">Tipo</label><select id="ep-tipo-' + esc(id) + '" data-f="ep_tipo_' + esc(id) + '" data-chg="reRender"><option value="uso"' + sel(tipo, 'uso') + '>Uso no estúdio</option><option value="venda"' + sel(tipo, 'venda') + '>À venda</option></select></div>' +
+      '<div class="field"><label for="ep-un-' + esc(id) + '">Unidade</label><select id="ep-un-' + esc(id) + '" data-f="ep_un_' + esc(id) + '">' + UNS.map((u) => '<option' + sel(k('un', p.un || 'un'), u) + '>' + u + '</option>').join('') + '</select></div></div>' +
+      '<div class="field"><label for="ep-nome-' + esc(id) + '">Nome</label><input class="small" id="ep-nome-' + esc(id) + '" data-f="ep_nome_' + esc(id) + '" value="' + esc(k('nome', p.nome)) + '"></div>' +
+      '<div class="grid2"><div class="field"><label for="ep-min-' + esc(id) + '">Avisar quando tiver</label><input class="small" id="ep-min-' + esc(id) + '" inputmode="decimal" data-f="ep_min_' + esc(id) + '" value="' + esc(k('min', p.min == null ? '' : fmtQ(p.min))) + '" placeholder="Ex.: 1"></div>' +
+      '<div class="field"><label for="ep-custo-' + esc(id) + '">Custo de cada (R$)</label><input class="small" id="ep-custo-' + esc(id) + '" inputmode="decimal" data-f="ep_custo_' + esc(id) + '" value="' + esc(k('custo', p.custo ? fmtQ(p.custo) : '')) + '"></div></div>' +
+      (tipo === 'venda' ? '<div class="field"><label for="ep-preco-' + esc(id) + '">Preço de venda (R$)</label><input class="small" id="ep-preco-' + esc(id) + '" inputmode="decimal" data-f="ep_preco_' + esc(id) + '" value="' + esc(k('preco', p.preco ? fmtQ(p.preco) : '')) + '"></div>' : '') +
+      '<div class="grid2"><div class="field"><label for="ep-val-' + esc(id) + '">Validade (lacrado)</label><input class="small" type="date" id="ep-val-' + esc(id) + '" data-f="ep_validade_' + esc(id) + '" value="' + esc(k('validade', p.validade || '')) + '"></div>' +
+      '<div class="field"><label for="ep-dura-' + esc(id) + '">Dura depois de aberto (dias)</label><input class="small" id="ep-dura-' + esc(id) + '" inputmode="numeric" data-f="ep_dura_' + esc(id) + '" value="' + esc(k('dura', p.duraAberto || '')) + '" placeholder="Ex.: 42"></div></div>';
+    if (num(p.duraAberto) > 0) h += '<div class="row between"><span class="tiny">' + (p.abertoEm ? 'Aberto em ' + esc(fmtDia(p.abertoEm)) + ' · vale até ' + esc(fmtDia(addDays(p.abertoEm, num(p.duraAberto)))) : 'Nenhum aberto anotado') + '</span><button type="button" class="btn sm" data-act="estAbri" data-id="' + esc(id) + '">Abri um novo hoje</button></div>';
+    if (tipo === 'uso' && (cfg().servicos || []).length) {
+      h += '<span class="lbl">Gasta por atendimento</span><span class="tiny">Quanto sai a cada serviço feito. O app dá baixa sozinho quando a comanda é fechada. Deixe em branco o que não usa.</span><div class="grid2">' +
+        cfg().servicos.map((s) => '<div class="field"><label for="ec-' + esc(s.id) + '-' + esc(id) + '">' + esc(s.nome) + '</label><input class="small" id="ec-' + esc(s.id) + '-' + esc(id) + '" inputmode="decimal" data-f="ec_' + esc(s.id) + '_' + esc(id) + '" value="' + esc(fv('ec_' + s.id + '_' + id, (p.consumo || {})[s.id] ? fmtQ(p.consumo[s.id]) : '')) + '" placeholder="0"></div>').join('') + '</div>';
+    }
+    h += '<button type="button" class="btn pri" data-act="estSalvar" data-id="' + esc(id) + '">Salvar</button>';
+    h += '<span class="lbl">Chegou compra</span><div class="grid3"><div class="field"><label for="ee-q-' + esc(id) + '">Quantos</label><input class="small" id="ee-q-' + esc(id) + '" inputmode="decimal" data-f="ee_q_' + esc(id) + '" value="' + esc(fv('ee_q_' + id)) + '"></div>' +
+      '<div class="field"><label for="ee-v-' + esc(id) + '">Total pago</label><input class="small" id="ee-v-' + esc(id) + '" inputmode="decimal" data-f="ee_v_' + esc(id) + '" value="' + esc(fv('ee_v_' + id)) + '" placeholder="R$"></div>' +
+      '<div class="field"><label for="ee-d-' + esc(id) + '">Despesa?</label><select id="ee-d-' + esc(id) + '" data-f="ee_d_' + esc(id) + '"><option value="1"' + sel(fv('ee_d_' + id, '1'), '1') + '>Lançar</option><option value="0"' + sel(fv('ee_d_' + id, '1'), '0') + '>Não</option></select></div></div>' +
+      '<button type="button" class="btn" data-act="estEntrada" data-id="' + esc(id) + '">Registrar entrada</button>';
+    h += '<button type="button" class="btn bad sm" data-act="prodApagar" data-id="' + esc(id) + '">' + conf('pa' + id, 'Apagar item') + '</button>';
+    return h;
+  }
+  function vEstoque() {
+    const ps = (S.produtos || []).slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+    const f = S.ui.estFiltro || 'todos'; const a = alertasEstoque();
+    let h = '<span class="sub">Materiais que você usa nos atendimentos e produtos que vende. O app avisa quando está acabando ou perto de vencer, e dá baixa sozinho quando a comanda é fechada.</span>';
+    if (a.rep.length || a.ven.length) {
+      h += '<section class="card alert"><span class="h2">Atenção</span>';
+      a.ven.forEach((p) => { h += '<div class="item"><span class="grow">' + esc(p.nome) + '</span><span class="tiny c-bad" style="font-weight:600">' + txtVence(p._dias) + '</span></div>'; });
+      a.rep.forEach((p) => { h += '<div class="item"><span class="grow">' + esc(p.nome) + '</span><span class="tiny c-warn" style="font-weight:600">' + fmtQ(p.qtd) + ' ' + esc(p.un || 'un') + ' · repor</span></div>'; });
+      if (a.rep.length) h += '<div class="grid2"><button type="button" class="btn" data-act="estCopiar">Copiar lista</button><a class="btn ok" href="https://wa.me/?text=' + encodeURIComponent(textoCompras()) + '" target="_blank" rel="noopener">Lista no WhatsApp</a></div>';
+      h += '</section>';
+    }
+    const valor = ps.reduce((s, p) => s + Math.max(0, num(p.qtd)) * num(p.custo), 0);
+    if (ps.length) h += '<div class="row between"><span class="tiny">' + ps.length + (ps.length === 1 ? ' item' : ' itens') + '</span><span class="tiny">Valor em estoque: <b>' + brl(valor) + '</b></span></div>';
+    h += '<div class="chips">' + chip('Todos', 'estFiltro', 'todos', f === 'todos') + chip('Uso no estúdio', 'estFiltro', 'uso', f === 'uso') + chip('À venda', 'estFiltro', 'venda', f === 'venda') + '</div>';
+    const lista = ps.filter((p) => f === 'todos' || tipoProd(p) === f);
+    if (!lista.length) h += '<div class="empty"><span>' + (ps.length ? 'Nada nesse filtro.' : 'Nenhum item ainda. Comece pelos materiais comuns abaixo ou cadastre um a um.') + '</span></div>';
+    lista.forEach((p) => {
+      const s = situacaoProd(p); const ab = S.ui.estAberto === p.id; const v = validadeProd(p);
+      h += '<div class="card tight' + (s.repor || s.vence ? ' alert' : '') + '"><div class="row"><button type="button" class="grow" data-act="estAbrir" data-id="' + esc(p.id) + '" aria-expanded="' + ab + '" style="background:none;border:none;color:inherit;padding:0;text-align:left;cursor:pointer;min-height:44px;font:inherit"><div style="font-weight:600">' + esc(p.nome) + '</div><div class="tiny">' +
+        (tipoProd(p) === 'venda' ? 'À venda · ' + brl(p.preco) : 'Uso no estúdio') + (s.vence ? ' · <span class="c-bad">' + txtVence(s.dias) + '</span>' : (v ? ' · vence ' + esc(fmtDia(v)) : '')) + (contado(p) ? '' : ' · <span class="c-warn">conte e anote</span>') + '</div></button>' +
+        '<button type="button" class="btn sm" data-act="estMenos" data-id="' + esc(p.id) + '" aria-label="Tirar 1 de ' + esc(p.nome) + '">−</button><span class="num' + (s.repor ? ' c-warn' : '') + '" style="min-width:58px;text-align:center;font-weight:600">' + (contado(p) ? fmtQ(p.qtd) : '–') + ' <span class="tiny">' + esc(p.un || 'un') + '</span></span><button type="button" class="btn sm" data-act="estMais" data-id="' + esc(p.id) + '" aria-label="Pôr 1 de ' + esc(p.nome) + '">+</button></div>';
+      if (ab) h += formProd(p);
+      h += '</div>';
+    });
+    h += '<section class="card"><span class="h2">Materiais comuns</span><span class="sub">Cadastra de uma vez os materiais mais usados de cada área. Depois é só contar o que tem e ajustar.</span><div class="stack">' + Object.keys(MATERIAIS).map((k) => '<button type="button" class="btn" data-act="estPacote" data-v="' + k + '">+ ' + MATERIAIS[k][0] + ' (' + MATERIAIS[k][1].length + ' itens)</button>').join('') + '</div></section>';
+    const nt = fv('npTipo', 'uso');
+    h += '<section class="card"><span class="h2">Novo item</span>' +
+      '<div class="grid2"><div class="field"><label for="np-tipo">Tipo</label><select id="np-tipo" data-f="npTipo" data-chg="reRender"><option value="uso"' + (nt === 'uso' ? ' selected' : '') + '>Uso no estúdio</option><option value="venda"' + (nt === 'venda' ? ' selected' : '') + '>À venda</option></select></div>' +
+      '<div class="field"><label for="np-un">Unidade</label><select id="np-un" data-f="npUn">' + UNS.map((u) => '<option' + (fv('npUn', 'un') === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select></div></div>' +
+      '<div class="field"><label for="np-nome">Nome</label><input id="np-nome" data-f="npNome" value="' + esc(fv('npNome')) + '" placeholder="' + (nt === 'venda' ? 'Ex.: Sérum de cílios' : 'Ex.: Cola Elite 5ml') + '"></div>' +
+      '<div class="grid3"><div class="field"><label for="np-qtd">Tenho</label><input id="np-qtd" inputmode="decimal" data-f="npQtd" value="' + esc(fv('npQtd')) + '"></div><div class="field"><label for="np-min">Avisar em</label><input id="np-min" inputmode="decimal" data-f="npMin" value="' + esc(fv('npMin', '1')) + '"></div><div class="field"><label for="np-custo">Custo (R$)</label><input id="np-custo" inputmode="decimal" data-f="npCusto" value="' + esc(fv('npCusto')) + '"></div></div>' +
+      (nt === 'venda' ? '<div class="field"><label for="np-preco">Preço de venda (R$)</label><input id="np-preco" inputmode="decimal" data-f="npPreco" value="' + esc(fv('npPreco')) + '"></div>' : '') +
+      '<button type="button" class="btn pri" data-act="prodNovo">Cadastrar</button></section>';
+    return h;
+  }
 
   // ---------- Fotos de antes e depois (privadas: bucket "fichas", pasta estúdio/cliente) ----------
   const FC_MAX = 24;
@@ -1318,10 +1442,11 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   function vGestao() {
     if (souBarbeiro()) return vConta();
     if (S.ui.gesTab === 'conta') return '<button type="button" class="btn sm" data-act="gesTab" data-v="barbearia" style="align-self:flex-start">‹ Gestão</button>' + vConta();
-    const tabs = [['barbearia', 'Estúdio'], ['horarios', 'Horários'], ['pagamentos', 'Pagamentos'], ['equipe', 'Equipe'], ['servicos', 'Serviços']];
+    const tabs = [['barbearia', 'Estúdio'], ['horarios', 'Horários'], ['pagamentos', 'Pagamentos'], ['equipe', 'Equipe'], ['servicos', 'Serviços'], ['estoque', 'Estoque']];
     let h = '<div class="chips">' + tabs.map((t) => chip(t[1], 'gesTab', t[0], S.ui.gesTab === t[0])).join('') + '</div>';
     const g = S.ui.gesTab; const c = cfg(); const m = mesAtual();
     if (g === 'horarios') h += vHorarios();
+    if (g === 'estoque') h += vEstoque();
     if (g === 'equipe') {
       const sEx = (c.servicos || [])[0];
       h += '<span class="sub">A comissão é a porcentagem que cada profissional ganha em cima do valor cheio de cada serviço. Sem descontos. Os valores abaixo são de ' + MES[new Date().getMonth()] + '.</span>';
@@ -1877,12 +2002,50 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const ok = await W(() => col('vales').doc(newId()).set({ data: today(), barbeiroId: bid, valor: v }), 'Vale lançado'); if (ok) { S.f.vlValor = ''; render(); }
     },
     valeApagar: async (el) => { await W(() => col('vales').doc(el.dataset.id).delete(), 'Vale apagado'); },
-    estMais: async (el) => { const p = S.produtos.find((x) => x.id === el.dataset.id); if (p) await W(() => col('produtos').doc(p.id).update({ qtd: num(p.qtd) + 1 })); },
-    estMenos: async (el) => { const p = S.produtos.find((x) => x.id === el.dataset.id); if (p && num(p.qtd) > 0) await W(() => col('produtos').doc(p.id).update({ qtd: num(p.qtd) - 1 })); },
+    estMais: async (el) => { const p = S.produtos.find((x) => x.id === el.dataset.id); if (p) await W(() => col('produtos').doc(p.id).update({ qtd: Math.round((num(p.qtd) + 1) * 100) / 100 })); },
+    estMenos: async (el) => { const p = S.produtos.find((x) => x.id === el.dataset.id); if (p && num(p.qtd) > 0) await W(() => col('produtos').doc(p.id).update({ qtd: Math.max(0, Math.round((num(p.qtd) - 1) * 100) / 100) })); },
+    estFiltro: (el) => { S.ui.estFiltro = el.dataset.v; render(); },
+    estAbrir: (el) => { S.ui.estAberto = S.ui.estAberto === el.dataset.id ? null : el.dataset.id; render(); },
+    estSalvar: async (el) => {
+      const id = el.dataset.id; const p = S.produtos.find((x) => x.id === id); if (!p) return;
+      const k = (c, d) => fv('ep_' + c + '_' + id, d);
+      const nome = String(k('nome', p.nome)).trim(); if (!nome) { toast('Informe o nome.', true); return; }
+      const tipo = k('tipo', tipoProd(p)) === 'venda' ? 'venda' : 'uso';
+      const cons = {}; if (tipo === 'uso') (cfg().servicos || []).forEach((sv) => { const q = num(fv('ec_' + sv.id + '_' + id, (p.consumo || {})[sv.id] || '')); if (q > 0) cons[sv.id] = Math.round(q * 1000) / 1000; });
+      const d = { nome: nome.slice(0, 60), tipo: tipo, un: UNS.indexOf(k('un', p.un)) >= 0 ? k('un', p.un) : 'un', min: Math.max(0, num(k('min', p.min))), custo: Math.max(0, num(k('custo', p.custo))),
+        preco: tipo === 'venda' ? Math.max(0, num(k('preco', p.preco))) : 0, validade: k('validade', p.validade || '') || null, duraAberto: Math.max(0, Math.round(num(k('dura', p.duraAberto)))), consumo: cons };
+      const ok = await W(() => col('produtos').doc(id).update(d), 'Item salvo');
+      if (ok) { Object.keys(S.f).forEach((x) => { if (/^(ep|ec)_/.test(x) && x.slice(-id.length - 1) === '_' + id) delete S.f[x]; }); S.ui.estAberto = null; render(); }
+    },
+    estEntrada: async (el) => {
+      const id = el.dataset.id; const p = S.produtos.find((x) => x.id === id); if (!p) return;
+      const q = num(fv('ee_q_' + id)); const tot = num(fv('ee_v_' + id));
+      if (!(q > 0)) { toast('Informe quantos chegaram.', true); return; }
+      const desp = fv('ee_d_' + id, '1') === '1' && tot > 0;
+      const ok = await W(async () => {
+        await col('produtos').doc(id).update(Object.assign({ qtd: Math.round((num(p.qtd) + q) * 100) / 100 }, tot > 0 ? { custo: Math.round((tot / q) * 100) / 100 } : {}));
+        if (desp) await col('despesas').doc(newId()).set({ data: today(), descricao: 'Compra: ' + p.nome, valor: tot });
+      }, desp ? 'Entrada registrada e lançada nas despesas' : 'Entrada registrada');
+      if (ok) { delete S.f['ee_q_' + id]; delete S.f['ee_v_' + id]; render(); }
+    },
+    estAbri: async (el) => {
+      const p = S.produtos.find((x) => x.id === el.dataset.id); if (!p) return;
+      const ok = await W(() => col('produtos').doc(p.id).update(Object.assign({ abertoEm: today() }, contado(p) && num(p.qtd) > 0 ? { qtd: Math.round((num(p.qtd) - 1) * 100) / 100 } : {})));
+      if (ok) toast('Anotado! Vale até ' + fmtDia(addDays(today(), num(p.duraAberto))));
+    },
+    estCopiar: () => { try { navigator.clipboard.writeText(textoCompras()).then(() => toast('Lista copiada'), () => toast('Não deu pra copiar.', true)); } catch (e) { toast('Não deu pra copiar.', true); } },
+    estPacote: async (el) => {
+      const pk = MATERIAIS[el.dataset.v]; if (!pk) return;
+      const tem = (n) => (S.produtos || []).some((x) => String(x.nome).trim().toLowerCase() === n.toLowerCase());
+      const novos = pk[1].filter((x) => !tem(x.nome)); if (!novos.length) { toast('Os materiais de ' + pk[0].toLowerCase() + ' já estão na lista.'); return; }
+      const ok = await W(async () => { for (const x of novos) await col('produtos').doc(newId()).set({ nome: x.nome, tipo: 'uso', un: x.un, qtd: null, min: x.min, custo: 0, preco: 0, duraAberto: x.duraAberto || 0, consumo: {} }); });
+      if (ok) toast(novos.length + ' materiais adicionados. Agora conte o que tem e ajuste.');
+    },
     prodApagar: async (el) => { if (precisaConfirmar('pa' + el.dataset.id)) return; await W(() => col('produtos').doc(el.dataset.id).delete(), 'Produto apagado'); },
     prodNovo: async () => {
-      const nome = String(fv('npNome')).trim(); if (!nome) { toast('Informe o nome do produto.', true); return; }
-      const ok = await W(() => col('produtos').doc(newId()).set({ nome: nome, preco: num(fv('npPreco')), custo: num(fv('npCusto')), qtd: num(fv('npQtd')), min: num(fv('npMin', '3')) }), 'Produto cadastrado');
+      const nome = String(fv('npNome')).trim(); if (!nome) { toast('Informe o nome do item.', true); return; }
+      const tipo = fv('npTipo', 'uso') === 'venda' ? 'venda' : 'uso'; const q = String(fv('npQtd')).trim();
+      const ok = await W(() => col('produtos').doc(newId()).set({ nome: nome.slice(0, 60), tipo: tipo, un: fv('npUn', 'un'), qtd: q === '' ? null : Math.max(0, num(q)), min: Math.max(0, num(fv('npMin', '1'))), custo: Math.max(0, num(fv('npCusto'))), preco: tipo === 'venda' ? Math.max(0, num(fv('npPreco'))) : 0, duraAberto: 0, consumo: {} }), 'Item cadastrado');
       if (ok) { ['npNome', 'npPreco', 'npCusto', 'npQtd'].forEach((k) => { S.f[k] = ''; }); render(); }
     },
     svApagar: async (el) => { const i = Number(el.dataset.id); const s = cfg().servicos[i]; if (!s || precisaConfirmar('sv' + s.id)) return; const n = cfg().servicos.slice(); n.splice(i, 1); await salvarCfg({ servicos: n }); },
@@ -1983,6 +2146,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     barbView: (el) => { S.ui.barbView = el.dataset.v; render(); }
   };
   const C = {
+    reRender: () => { render(); },
     bkNome: (el) => { const cl = S.clientes.find((c) => c.nome === el.value); if (cl && !String(fv('bkTel')).trim()) { S.f.bkTel = cl.telefone || ''; const t = document.getElementById('bk-tel'); if (t) t.value = S.f.bkTel; } S.dirty = true; },
     cmBarb: (el) => { W(() => col('comandas').doc(el.dataset.id).update({ barbeiroId: el.value })); },
     cmGorj: (el) => { W(() => col('comandas').doc(el.dataset.id).update({ gorjeta: num(el.value) })); },
