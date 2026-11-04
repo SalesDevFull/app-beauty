@@ -25,13 +25,13 @@ Este projeto começou como uma cópia do **Degradê** (app de barbearias, reposi
 
 **Fotos de antes e depois.** Na ficha da cliente, a equipe tira fotos de antes e de depois (até 24 por cliente). Elas ficam num armazenamento privado: só quem é do estúdio vê, por links que expiram em 1 hora. Quando a cliente é apagada, as fotos são apagadas junto.
 
-**Estoque de materiais.** Em Gestão → Estoque ficam só os materiais que o estúdio usa nos atendimentos (cola, fios, henna, gel, microbrush…). Não há produto à venda.
-- Em cada material, a dona diz em quais serviços ele é usado e quanto sai por atendimento. O app dá baixa sozinho quando a comanda é fechada.
+**Estoque de materiais.** Em Gestão → Estoque ficam só os materiais que o estúdio usa nos atendimentos (cola, fios, henna, gel, microbrush…).
+- Lista curta: cada material numa linha com a quantidade, − / +, a situação (repor, vencendo, sem contar) e os serviços que o usam. Filtros Repor, Vencendo e Sem contar.
+- Ao abrir um material: "Tenho agora", "Mínimo" e "Unidade", e os serviços que o usam marcados em botões, com quanto sai em cada atendimento. Fechar a comanda dá baixa sozinho.
+- "Chegou compra" e "Custo e validade" ficam fechados e abrem quando precisa.
+- Avisa "repor" só quando a quantidade fica abaixo do mínimo, com a lista de compras para copiar ou mandar no WhatsApp.
+- Validade e "dura aberto" (a cola de cílios vale de 4 a 6 semanas aberta).
 - Em Gestão → Serviços, cada serviço mostra os materiais que gasta e o custo de material por atendimento.
-- Estoque mínimo, com o aviso "repor" e uma lista de compras para copiar ou mandar no WhatsApp.
-- Validade do material lacrado e "dura depois de aberto" (a cola de cílios vale de 4 a 6 semanas aberta). Se o material já baixa pelos atendimentos, "Abri um novo hoje" só marca a validade.
-- "Chegou compra" soma ao estoque, atualiza o custo e pode lançar a despesa.
-- Pacotes de materiais comuns de Cílios, Sobrancelhas e Unhas, e um card de alerta no Início.
 
 ## Visual
 
