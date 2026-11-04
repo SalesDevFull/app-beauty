@@ -493,6 +493,7 @@ returns json language sql stable security definer set search_path = public as $$
     'instagram', b.config ->> 'instagram',
     'whatsapp', b.config ->> 'whatsapp',
     'regras', nullif(b.config ->> 'regras', ''),
+    'areas', case when jsonb_typeof(b.config -> 'areas') = 'array' then b.config -> 'areas' end,
     'anamnese', coalesce(b.config -> 'anamnese' ->> 'ativa', 'false') = 'true',
     'formas', coalesce(b.config -> 'formas', '["Pix","Cartão","Dinheiro"]'::jsonb),
     'sinal', case when sinal_ligado(b.id, b.config) then json_build_object(

@@ -382,6 +382,7 @@ h2{font-size:28px;font-weight:600}
   // Apresentação do estúdio (passo 1): logo grande com anel na cor do estúdio, nome, áreas, recado, horário e contatos.
   const AREAS = [['Cílios', /c[ií]lio|lash|fio a fio|volume|extens|lifting|rímel/i], ['Sobrancelhas', /sobrancelh|brow|henna|design/i], ['Unhas', /unha|manicure|pedicure|p[ée] e m[ãa]o|esmalt|alongamento|gel|fibra/i], ['Depilação', /depila|cera|buço|linha/i], ['Maquiagem', /maquiag|make/i]];
   function areasDoEstudio(b) {
+    if (Array.isArray(b.areas)) return b.areas.map(String).filter(Boolean).slice(0, 3); // a dona escolheu (pode ser nenhuma)
     const nomes = (b.servicos || []).map((x) => x.nome + ' ' + (x.desc || '')).join(' | ');
     return AREAS.filter((a) => a[1].test(nomes)).map((a) => a[0]).slice(0, 3);
   }
