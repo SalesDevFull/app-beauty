@@ -214,6 +214,8 @@ button.logo:active{transform:scale(.94)}
 .est-qtd .num{min-width:46px;text-align:center;font-weight:700;font-size:17px;line-height:1.1;display:flex;flex-direction:column;align-items:center}
 .est-qtd .num small{font-size:11px;font-weight:500;opacity:.7}
 .est-qtd .btn.sm{min-width:38px;padding:0}
+.est-x{flex:none;min-width:30px;height:30px;border:0;border-radius:999px;background:transparent;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;padding:0 6px;margin-left:-2px}
+.est-x.conf{background:#A3271F;color:#fff;font-size:12px;padding:0 10px}
 .est-form{display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px}
 .est-q input{max-width:86px;text-align:right}
 .est-prontos{display:flex;flex-direction:column;gap:6px;margin-top:6px}
@@ -1193,7 +1195,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
         '<div class="grid2"><div class="field"><label for="ep-val-' + esc(id) + '">Validade</label><input class="small" type="date" id="ep-val-' + esc(id) + '" data-f="ep_validade_' + esc(id) + '" value="' + esc(k('validade', p.validade || '')) + '"></div>' +
         '<div class="field"><label for="ep-dura-' + esc(id) + '">Dura aberto (dias)</label><input class="small" id="ep-dura-' + esc(id) + '" inputmode="numeric" data-f="ep_dura_' + esc(id) + '" value="' + esc(k('dura', p.duraAberto || '')) + '" placeholder="Ex.: 42"></div></div>';
       if (num(p.duraAberto) > 0) h += '<div class="row between"><span class="tiny">' + (p.abertoEm ? 'Aberto em ' + esc(fmtDia(p.abertoEm)) + ', vale até ' + esc(fmtDia(addDays(p.abertoEm, num(p.duraAberto)))) : 'Nenhum aberto anotado') + '</span><button type="button" class="btn sm" data-act="estAbri" data-id="' + esc(id) + '">Abri um novo</button></div>';
-      h += '<span class="tiny">Salve pra guardar nome, custo e validade.</span><button type="button" class="btn bad sm" data-act="prodApagar" data-id="' + esc(id) + '">' + conf('pa' + id, 'Apagar material') + '</button>';
+      h += '<span class="tiny">Salve pra guardar nome, custo e validade.</span>';
     }
     return h + '</div>';
   }
@@ -1228,7 +1230,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const st = s.vence ? '<span class="c-bad">' + txtVence(s.dias) + '</span>' : s.repor ? '<span class="c-warn">repor</span>' : !contado(p) ? '<span class="c-warn">sem contar</span>' : '';
       const sub = [st, usos.length ? esc(usos.join(', ')) : '<span class="c-muted">sem serviço</span>'].filter(Boolean).join(' · ');
       h += '<div class="card tight est-it' + (s.repor || s.vence ? ' alert' : '') + (ab ? ' aberto' : '') + '"><div class="row"><button type="button" class="grow est-nome" data-act="estAbrir" data-id="' + esc(p.id) + '" aria-expanded="' + ab + '"><b>' + esc(p.nome) + '</b><span class="tiny">' + sub + '</span></button>' +
-        '<div class="est-qtd"><button type="button" class="btn sm" data-act="estMenos" data-id="' + esc(p.id) + '" aria-label="Tirar 1 de ' + esc(p.nome) + '">−</button><span class="num' + (s.repor ? ' c-warn' : '') + '">' + (contado(p) ? fmtQ(p.qtd) : '–') + '<small>' + esc(p.un || 'un') + '</small></span><button type="button" class="btn sm" data-act="estMais" data-id="' + esc(p.id) + '" aria-label="Pôr 1 de ' + esc(p.nome) + '">+</button></div></div>';
+        '<div class="est-qtd"><button type="button" class="btn sm" data-act="estMenos" data-id="' + esc(p.id) + '" aria-label="Tirar 1 de ' + esc(p.nome) + '">−</button><span class="num' + (s.repor ? ' c-warn' : '') + '">' + (contado(p) ? fmtQ(p.qtd) : '–') + '<small>' + esc(p.un || 'un') + '</small></span><button type="button" class="btn sm" data-act="estMais" data-id="' + esc(p.id) + '" aria-label="Pôr 1 de ' + esc(p.nome) + '">+</button></div>' +
+        '<button type="button" class="est-x' + (S.ui.confirm === 'pa' + p.id ? ' conf' : '') + '" data-act="prodApagar" data-id="' + esc(p.id) + '" aria-label="Excluir ' + esc(p.nome) + '">' + (S.ui.confirm === 'pa' + p.id ? 'Excluir?' : '✕') + '</button></div>';
       if (ab) h += formProd(p);
       h += '</div>';
     });
@@ -2085,7 +2088,11 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const ok = await W(async () => { for (const x of novos) await col('produtos').doc(newId()).set({ nome: x.nome, tipo: 'uso', un: x.un, qtd: null, min: x.min, custo: 0, preco: 0, duraAberto: x.duraAberto || 0, consumo: {} }); });
       if (ok) toast(novos.length + ' materiais adicionados. Agora conte o que tem e ajuste.');
     },
-    prodApagar: async (el) => { if (precisaConfirmar('pa' + el.dataset.id)) return; await W(() => col('produtos').doc(el.dataset.id).delete(), 'Produto apagado'); },
+    prodApagar: async (el) => {
+      const id = el.dataset.id; if (precisaConfirmar('pa' + id)) return;
+      const ok = await W(() => col('produtos').doc(id).delete(), 'Material excluído');
+      if (ok) { Object.keys(S.f).forEach((x) => { if (/^(ep|ec|es|ee)_/.test(x) && x.slice(-id.length - 1) === '_' + id) delete S.f[x]; }); if (S.ui.estAberto === id) S.ui.estAberto = null; S.ui.estSec = ''; render(); }
+    },
     prodNovo: async () => {
       const nome = String(fv('npNome')).trim(); if (!nome) { toast('Informe o nome do material.', true); return; }
       const q = String(fv('npQtd')).trim();
