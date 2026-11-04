@@ -1132,7 +1132,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   }
   function situacaoProd(p) {
     const v = validadeProd(p); const d = v ? diffDays(today(), v) : null;
-    return { repor: contado(p) && num(p.qtd) <= num(p.min), vence: d !== null && d <= 15 ? v : null, dias: d };
+    return { repor: contado(p) && num(p.min) > 0 && num(p.qtd) < num(p.min), vence: d !== null && d <= 15 ? v : null, dias: d };
   }
   const txtVence = (d) => (d < 0 ? 'venceu' : d === 0 ? 'vence hoje' : 'vence em ' + d + ' dia' + (d === 1 ? '' : 's'));
   function alertasEstoque() {
@@ -1155,8 +1155,10 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     const id = p.id; const k = (c, d) => fv('ep_' + c + '_' + id, d); const sel = (a, b) => (a === b ? ' selected' : '');
     let h = '<div class="grid2"><div class="field"><label for="ep-nome-' + esc(id) + '">Nome</label><input class="small" id="ep-nome-' + esc(id) + '" data-f="ep_nome_' + esc(id) + '" value="' + esc(k('nome', p.nome)) + '"></div>' +
       '<div class="field"><label for="ep-un-' + esc(id) + '">Unidade</label><select id="ep-un-' + esc(id) + '" data-f="ep_un_' + esc(id) + '">' + UNS.map((u) => '<option' + sel(k('un', p.un || 'un'), u) + '>' + u + '</option>').join('') + '</select></div></div>' +
-      '<div class="grid2"><div class="field"><label for="ep-min-' + esc(id) + '">Avisar quando tiver</label><input class="small" id="ep-min-' + esc(id) + '" inputmode="decimal" data-f="ep_min_' + esc(id) + '" value="' + esc(k('min', p.min == null ? '' : fmtQ(p.min))) + '" placeholder="Ex.: 1"></div>' +
-      '<div class="field"><label for="ep-custo-' + esc(id) + '">Custo de cada (R$)</label><input class="small" id="ep-custo-' + esc(id) + '" inputmode="decimal" data-f="ep_custo_' + esc(id) + '" value="' + esc(k('custo', p.custo ? fmtQ(p.custo) : '')) + '"></div></div>' +
+      '<div class="grid3"><div class="field"><label for="ep-qtd-' + esc(id) + '">Tenho agora</label><input class="small" id="ep-qtd-' + esc(id) + '" inputmode="decimal" data-f="ep_qtd_' + esc(id) + '" value="' + esc(k('qtd', contado(p) ? fmtQ(p.qtd) : '')) + '" placeholder="Contar"></div>' +
+      '<div class="field"><label for="ep-min-' + esc(id) + '">Mínimo</label><input class="small" id="ep-min-' + esc(id) + '" inputmode="decimal" data-f="ep_min_' + esc(id) + '" value="' + esc(k('min', p.min == null ? '' : fmtQ(p.min))) + '" placeholder="Ex.: 1"></div>' +
+      '<div class="field"><label for="ep-custo-' + esc(id) + '">Custo (R$)</label><input class="small" id="ep-custo-' + esc(id) + '" inputmode="decimal" data-f="ep_custo_' + esc(id) + '" value="' + esc(k('custo', p.custo ? fmtQ(p.custo) : '')) + '"></div></div>' +
+      '<span class="tiny">O app avisa quando ficar abaixo do mínimo. Custo é o de cada ' + esc(p.un || 'un') + '.</span>' +
       '<div class="grid2"><div class="field"><label for="ep-val-' + esc(id) + '">Validade (lacrado)</label><input class="small" type="date" id="ep-val-' + esc(id) + '" data-f="ep_validade_' + esc(id) + '" value="' + esc(k('validade', p.validade || '')) + '"></div>' +
       '<div class="field"><label for="ep-dura-' + esc(id) + '">Dura depois de aberto (dias)</label><input class="small" id="ep-dura-' + esc(id) + '" inputmode="numeric" data-f="ep_dura_' + esc(id) + '" value="' + esc(k('dura', p.duraAberto || '')) + '" placeholder="Ex.: 42"></div></div>';
     if (num(p.duraAberto) > 0) h += '<div class="row between"><span class="tiny">' + (p.abertoEm ? 'Aberto em ' + esc(fmtDia(p.abertoEm)) + ' · vale até ' + esc(fmtDia(addDays(p.abertoEm, num(p.duraAberto)))) : 'Nenhum aberto anotado') + '</span><button type="button" class="btn sm" data-act="estAbri" data-id="' + esc(id) + '">Abri um novo hoje</button></div>' + (Object.keys(p.consumo || {}).length ? '<span class="tiny">Como este material já baixa pelos atendimentos, "Abri um novo" só marca a validade.</span>' : '');
@@ -1199,8 +1201,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     h += '<section class="card"><span class="h2">Novo material</span>' +
       '<div class="grid2"><div class="field"><label for="np-nome">Nome</label><input id="np-nome" data-f="npNome" value="' + esc(fv('npNome')) + '" placeholder="Ex.: Cola Elite 5ml"></div>' +
       '<div class="field"><label for="np-un">Unidade</label><select id="np-un" data-f="npUn">' + UNS.map((u) => '<option' + (fv('npUn', 'un') === u ? ' selected' : '') + '>' + u + '</option>').join('') + '</select></div></div>' +
-      '<div class="grid3"><div class="field"><label for="np-qtd">Tenho</label><input id="np-qtd" inputmode="decimal" data-f="npQtd" value="' + esc(fv('npQtd')) + '"></div><div class="field"><label for="np-min">Avisar em</label><input id="np-min" inputmode="decimal" data-f="npMin" value="' + esc(fv('npMin', '1')) + '"></div><div class="field"><label for="np-custo">Custo (R$)</label><input id="np-custo" inputmode="decimal" data-f="npCusto" value="' + esc(fv('npCusto')) + '"></div></div>' +
-      '<span class="tiny">Depois de cadastrar, abra o material e diga em quais serviços ele é usado.</span>' +
+      '<div class="grid3"><div class="field"><label for="np-qtd">Tenho</label><input id="np-qtd" inputmode="decimal" data-f="npQtd" value="' + esc(fv('npQtd')) + '"></div><div class="field"><label for="np-min">Mínimo</label><input id="np-min" inputmode="decimal" data-f="npMin" value="' + esc(fv('npMin', '1')) + '"></div><div class="field"><label for="np-custo">Custo (R$)</label><input id="np-custo" inputmode="decimal" data-f="npCusto" value="' + esc(fv('npCusto')) + '"></div></div>' +
+      '<span class="tiny">O app avisa quando ficar abaixo do mínimo. Depois de cadastrar, abra o material e diga em quais serviços ele é usado.</span>' +
       '<button type="button" class="btn pri" data-act="prodNovo">Cadastrar</button></section>';
     return h;
   }
@@ -2006,7 +2008,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const k = (c, d) => fv('ep_' + c + '_' + id, d);
       const nome = String(k('nome', p.nome)).trim(); if (!nome) { toast('Informe o nome.', true); return; }
       const cons = {}; (cfg().servicos || []).forEach((sv) => { const q = num(fv('ec_' + sv.id + '_' + id, (p.consumo || {})[sv.id] || '')); if (q > 0) cons[sv.id] = Math.round(q * 1000) / 1000; });
-      const d = { nome: nome.slice(0, 60), tipo: 'uso', un: UNS.indexOf(k('un', p.un)) >= 0 ? k('un', p.un) : 'un', min: Math.max(0, num(k('min', p.min))), custo: Math.max(0, num(k('custo', p.custo))),
+      const qS = String(k('qtd', contado(p) ? p.qtd : '')).trim();
+      const d = { nome: nome.slice(0, 60), tipo: 'uso', qtd: qS === '' ? null : Math.max(0, Math.round(num(qS) * 100) / 100), un: UNS.indexOf(k('un', p.un)) >= 0 ? k('un', p.un) : 'un', min: Math.max(0, num(k('min', p.min))), custo: Math.max(0, num(k('custo', p.custo))),
         preco: 0, validade: k('validade', p.validade || '') || null, duraAberto: Math.max(0, Math.round(num(k('dura', p.duraAberto)))), consumo: cons };
       const ok = await W(() => col('produtos').doc(id).update(d), 'Item salvo');
       if (ok) { Object.keys(S.f).forEach((x) => { if (/^(ep|ec)_/.test(x) && x.slice(-id.length - 1) === '_' + id) delete S.f[x]; }); S.ui.estAberto = null; render(); }
