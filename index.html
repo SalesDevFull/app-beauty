@@ -617,6 +617,13 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       return false;
     }
   }
+  // O que o estúdio faz: a dona escolhe (até 3). Aparece na página de agendamento e na tela de entrada deste aparelho.
+  const AREAS_OP = ['Cílios', 'Sobrancelhas', 'Unhas', 'Depilação', 'Maquiagem', 'Micropigmentação', 'Estética'];
+  const AREAS_KEY = 'fioafio-areas';
+  function linhaMarca() { try { const a = localStorage.getItem(AREAS_KEY); if (a) return a; } catch (e) { /* sem armazenamento */ } return 'agenda do seu estúdio de beleza'; }
+  function guardarAreas(lista) {
+    try { const a = (lista || cfg().areas || []).map((x) => String(x).toLowerCase()).join(' · '); if ((localStorage.getItem(AREAS_KEY) || '') === a) return; if (a) localStorage.setItem(AREAS_KEY, a); else localStorage.removeItem(AREAS_KEY); } catch (e) { /* sem armazenamento */ }
+  }
   async function salvarCfg(patch) {
     const novo = Object.assign({}, cfg(), patch);
     return W(() => S.db.doc('config/main').set(novo));
@@ -679,7 +686,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   const linkPublico = () => { const base = location.origin + location.pathname.replace(/[^/]*$/, ''); return base + 'agendar.html?b=' + encodeURIComponent(S.slug || ''); };
 
   function abertura(sub) {
-    return '<div class="abertura"><div class="heroi">' + mascote('m-hero m-grande', 'Fio a Fio') + '</div><div class="marca-app"><div class="nome-app"><em>Fio a Fio</em></div><div class="marca-linha">cílios · sobrancelhas · unhas</div></div><div class="sub">' + sub + '</div></div>';
+    return '<div class="abertura"><div class="heroi">' + mascote('m-hero m-grande', 'Fio a Fio') + '</div><div class="marca-app"><div class="nome-app"><em>Fio a Fio</em></div><div class="marca-linha">' + esc(linhaMarca()) + '</div></div><div class="sub">' + sub + '</div></div>';
   }
 
   // Lê o valor direto do campo (o preenchimento automático do celular nem sempre avisa a página).
@@ -1575,6 +1582,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
         '<button type="button" class="btn pri" data-act="bbRegrasSalvar">Salvar</button></section>';
       h += '<section class="card"><span class="h2">Perfil e página de agendamento</span>' +
         '<div class="field"><label for="bb-nome">Nome do estúdio</label><input id="bb-nome" data-f="bbNome" value="' + esc(fv('bbNome', c.nome)) + '"></div>' +
+        '<span class="lbl">O que o estúdio faz</span><span class="tiny">Escolha até 3. Aparece embaixo do nome na página de agendamento e na tela de entrada do app.</span>' +
+        '<div class="chips">' + AREAS_OP.map((a) => { const on = (S.f.bbAreas || c.areas || []).indexOf(a) >= 0; return '<button type="button" class="chip' + (on ? ' on' : '') + '" data-act="bbArea" data-v="' + esc(a) + '" aria-pressed="' + on + '">' + esc(a) + '</button>'; }).join('') + '</div>' +
         '<span class="lbl">Cor da marca</span><div class="chips">' + CORES.map((k) => '<button type="button" class="sw' + (fv('bbCor', corMarca(c.cor)) === k[0] ? ' on' : '') + '" style="background:' + k[0] + '" data-act="bbCor" data-v="' + k[0] + '" aria-label="Cor ' + k[1] + '" aria-pressed="' + (fv('bbCor', corMarca(c.cor)) === k[0]) + '"></button>').join('') + '</div>' +
         '<span class="lbl">Estilo da página de agendamento da cliente</span><div class="chips">' + chip('Escuro', 'bbTema', 'escuro', tema === 'escuro') + chip('Claro', 'bbTema', 'claro', tema === 'claro') + '</div>' +
         '<span class="tiny">Muda só a página que a cliente abre pelo link. A aparência do seu app fica logo acima, em "Aparência do app".</span>' +
@@ -1725,10 +1734,11 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     lg.classList.toggle('tem-logo', !!c.logo);
   }
   function render() {
+    if (S.bid && Array.isArray(cfg().areas)) guardarAreas();
     const v = document.getElementById('view');
     const tab = S.ui.tab;
     document.getElementById('topSub').textContent = (tab === 'inicio' ? saudacao() + ' · ' : (S.cfg ? S.cfg.nome + ' · ' : '')) + fmtDia(today());
-    document.getElementById('topTitle').textContent = tab === 'inicio' && S.cfg ? S.cfg.nome : (titulo(tab) || 'Barbearia');
+    document.getElementById('topTitle').textContent = tab === 'inicio' && S.cfg ? S.cfg.nome : (titulo(tab) || 'Fio a Fio');
     const ativa = TAB_DA_VIEW[tab] || tab;
     if (tab === 'agenda' && S.novos) { S.novos = 0; }
     const bg = document.getElementById('badge-agenda'); bg.hidden = !S.novos; bg.textContent = S.novos > 9 ? '9+' : String(S.novos || '');
@@ -2177,13 +2187,18 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       });
       if (ok) { ['pgFormas', 'pgTipo', 'pgChave', 'pgNome', 'pgCidade', 'pgAtivo', 'pgPct', 'pgPrazo', 'mpCartao', 'mpPix', 'mpParc'].forEach((k) => { delete S.f[k]; }); toast(ativo ? 'Pronto! O sinal já vale na página de agendamento.' : 'Pagamentos salvos'); render(); }
     },
+    bbArea: (el) => {
+      const a = el.dataset.v; const cur = (S.f.bbAreas || cfg().areas || []).slice(); const i = cur.indexOf(a);
+      if (i >= 0) cur.splice(i, 1); else { if (cur.length >= 3) { toast('Escolha até 3.', true); return; } cur.push(a); }
+      S.f.bbAreas = AREAS_OP.filter((x) => cur.indexOf(x) >= 0); render();
+    },
     bbSalvar: async () => {
-      const c = cfg();
+      const c = cfg(); const areas = (S.f.bbAreas || c.areas || []).filter((x) => AREAS_OP.indexOf(x) >= 0).slice(0, 3);
       const insta = String(fv('bbInsta', c.instagram || '')).trim().replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/^@/, '').replace(/[/?#].*$/, '');
       const ok = await salvarCfg({ nome: String(fv('bbNome', c.nome)).trim() || c.nome, cor: fv('bbCor', corMarca(c.cor)), tema: fv('bbTema', c.tema || 'claro'),
         mensagem: String(fv('bbMsg', c.mensagem || '')).trim().slice(0, 240), endereco: String(fv('bbEnd', c.endereco || '')).trim(), instagram: insta, whatsapp: String(fv('bbZap', c.whatsapp || '')).trim(),
-        metaMes: num(fv('bbMeta', c.metaMes)) });
-      if (ok) { ['bbNome', 'bbCor', 'bbTema', 'bbMsg', 'bbEnd', 'bbInsta', 'bbZap', 'bbAbre', 'bbFecha', 'bbInt', 'bbMeta'].forEach((k) => { delete S.f[k]; }); toast('Estúdio atualizado'); }
+        metaMes: num(fv('bbMeta', c.metaMes)), areas: areas });
+      if (ok) { guardarAreas(areas); delete S.f.bbAreas; ['bbNome', 'bbCor', 'bbTema', 'bbMsg', 'bbEnd', 'bbInsta', 'bbZap', 'bbAbre', 'bbFecha', 'bbInt', 'bbMeta'].forEach((k) => { delete S.f[k]; }); toast('Estúdio atualizado'); }
     },
     zerar: async () => {
       if (precisaConfirmar('zerar')) return;
