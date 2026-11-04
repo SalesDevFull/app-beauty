@@ -42,7 +42,7 @@ Agenda por profissional, sinal no Pix/cartão pelo Mercado Pago de cada estúdio
 - [x] Publicação no Cloudflare Pages
 - [x] Nome, cores, ícone e textos do ramo de beleza
 - [x] Manutenção, ficha de saúde, ficha técnica, regras e cuidados
-- [ ] Mercado Pago (aplicação própria e segredos `MP_CLIENT_ID`, `MP_CLIENT_SECRET`, `APP_URL`)
+- [x] Mercado Pago (aplicação própria "Fio a Fio", segredos no Supabase, conexão testada)
 - [ ] Planos e chave Pix no painel administrativo
 - [x] Fotos de antes e depois na ficha da cliente (privadas)
 - [x] Serviços de unhas e pergunta de unhas na ficha de saúde
