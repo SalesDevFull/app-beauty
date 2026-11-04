@@ -382,7 +382,7 @@ h2{font-size:28px;font-weight:600}
     const titulo = (f.servico || 'Horário') + ' · ' + st.b.nome;
     const det = 'Com ' + (f.barbeiro || 'o estúdio') + '.' + (st.b.whatsapp ? ' WhatsApp do estúdio: ' + st.b.whatsapp : '');
     const loc = st.b.endereco || st.b.nome;
-    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Degrade//Agendamento//PT', 'BEGIN:VEVENT',
+    const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//FioAFio//Agendamento//PT', 'BEGIN:VEVENT',
       'UID:' + z(ini) + '-' + Math.random().toString(36).slice(2) + '@fioafio', 'DTSTAMP:' + z(new Date()), 'DTSTART:' + z(ini), 'DTEND:' + z(fim),
       'SUMMARY:' + titulo.replace(/[,;]/g, ' '), 'DESCRIPTION:' + det.replace(/[,;]/g, ' '), 'LOCATION:' + loc.replace(/[,;]/g, ' '),
       'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Amanhã: ' + titulo.replace(/[,;]/g, ' '), 'END:VALARM',
@@ -494,7 +494,7 @@ h2{font-size:28px;font-weight:600}
       return h + '</div>';
     };
     let h = '<div class="barbs">';
-    b.barbeiros.forEach((x) => { const fs = x.fotos || []; h += um(x.id, x.nome, fs.length ? fs.length + (fs.length === 1 ? ' trabalho' : ' trabalhos') : 'Barbeiro', fs.length ? '<img class="av" src="' + esc(urlFoto(fs[0].c)) + '" alt="" loading="lazy">' : '<span class="av" aria-hidden="true">' + inicial(x.nome) + '</span>', fs); });
+    b.barbeiros.forEach((x) => { const fs = x.fotos || []; h += um(x.id, x.nome, fs.length ? fs.length + (fs.length === 1 ? ' trabalho' : ' trabalhos') : 'Profissional', fs.length ? '<img class="av" src="' + esc(urlFoto(fs[0].c)) + '" alt="" loading="lazy">' : '<span class="av" aria-hidden="true">' + inicial(x.nome) + '</span>', fs); });
     h += um('qualquer', 'Qualquer uma', 'Primeiro horário livre', '<span class="av" aria-hidden="true">✦</span>', null);
     return h + '</div>';
   }

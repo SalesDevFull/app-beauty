@@ -370,7 +370,7 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
       const b = S.lista.find((x) => x.id === id);
       const r = await S.sb.rpc('admin_salvar_barbearia', { p_id: id, p_ativa: a === 'reativar', p_vencimento: b.vencimento, p_mensalidade: b.mensalidade, p_obs: b.obs_admin });
       if (r.error) { toast(r.error.message, true); return; }
-      toast(a === 'reativar' ? 'Barbearia reativada' : 'Barbearia desativada'); await carregar();
+      toast(a === 'reativar' ? 'Estúdio reativado' : 'Estúdio desativado'); await carregar();
     }
     if (a === 'cfgAbrir') { S.cfgAberta = true; S.planosEd = planos().map((p) => ({ id: p.id, nome: p.nome, preco: p.preco })); render(); }
     if (a === 'cfgFechar') { S.cfgAberta = false; S.planosEd = null; render(); }

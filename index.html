@@ -517,7 +517,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
   const cfg = () => S.cfg || DEF;
   const serv = (id) => (cfg().servicos || []).find((s) => s.id === id);
   const barb = (id) => (cfg().barbeiros || []).find((b) => b.id === id);
-  const barbNome = (id) => (barb(id) || {}).nome || 'Sem barbeiro';
+  const barbNome = (id) => (barb(id) || {}).nome || 'Sem profissional';
   const fechadas = () => S.comandas.filter((c) => c.status === 'fechada');
   const mesAtual = () => today().slice(0, 7);
   const byHora = (a, b) => toMin(a.hora) - toMin(b.hora);
@@ -616,7 +616,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     await col('clientes').doc(id).set({ nome: nome || 'Cliente', telefone: tel, criadoEm: new Date().toISOString(), visitas: 0, ultimaVisita: null, ficha: '' });
     return id;
   }
-  // Agendamento com um ou mais serviços (a cliente pode marcar "corte + sobrancelha").
+  // Agendamento com um ou mais serviços (a cliente pode marcar "fio a fio + design").
   const servsAg = (a) => (Array.isArray(a.servicoIds) && a.servicoIds.length ? a.servicoIds : [a.servicoId]).map(serv).filter(Boolean);
   const servAg = (a) => { const l = servsAg(a); if (l.length <= 1) return l[0] || null; return { id: l.map((x) => x.id).join(','), nome: l.map((x) => x.nome).join(' + '), preco: l.reduce((t, x) => t + num(x.preco), 0), dur: l.reduce((t, x) => t + (Number(x.dur) || 30), 0) }; };
   async function abrirComanda(a) {
@@ -714,8 +714,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     const nome = fv('stNome'); const slug = S.f.stSlug !== undefined ? S.f.stSlug : slugify(nome);
     return abertura('Falta pouco pra sua agenda abrir') + '<div class="card"><span class="badge c-acc">Primeiro acesso</span><p class="mid" style="margin:0">Vamos criar seu estúdio</p><p class="sub" style="margin:0">Depois você ajusta serviços, preços e equipe em Gestão. Se você é profissional de um estúdio, peça pra dona te convidar pelo seu e-mail e entre de novo.</p>' +
       '<div class="field"><label for="st-nome">Nome do estúdio</label><input id="st-nome" data-f="stNome" value="' + esc(nome) + '" placeholder="Ex.: Studio Bia Lash"></div>' +
-      '<div class="field"><label for="st-slug">Link de agendamento</label><input id="st-slug" data-f="stSlug" value="' + esc(slug) + '" placeholder="barbearia-do-joao"><span class="tiny">Só letras minúsculas, números e hífen. Não dá pra mudar depois.</span></div>' +
-      '<div class="field"><label for="st-dono">Seu nome (você entra como a primeira profissional)</label><input id="st-dono" data-f="stDono" value="' + esc(fv('stDono')) + '" placeholder="Ex.: João"></div>' +
+      '<div class="field"><label for="st-slug">Link de agendamento</label><input id="st-slug" data-f="stSlug" value="' + esc(slug) + '" placeholder="studio-bia-lash"><span class="tiny">Só letras minúsculas, números e hífen. Não dá pra mudar depois.</span></div>' +
+      '<div class="field"><label for="st-dono">Seu nome (você entra como a primeira profissional)</label><input id="st-dono" data-f="stDono" value="' + esc(fv('stDono')) + '" placeholder="Ex.: Bia"></div>' +
       '<button type="button" class="btn pri lg full" data-act="criarBarbearia">Criar estúdio</button>' +
       '<button type="button" class="btn" data-act="sair">Sair da conta</button></div>';
   }
@@ -879,7 +879,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     h += '<div class="semana7">' + [0, 1, 2, 3, 4, 5, 6].map((k) => { const d = addDays(ini, k); return '<button type="button" class="' + (d === dia ? 'on' : '') + '" data-act="agDiaSet" data-v="' + d + '" aria-pressed="' + (d === dia) + '"><small>' + SEM3[pdia(d).getDay()] + '</small><b>' + pdia(d).getDate() + '</b>' + (temAg.has(d) ? '<i></i>' : '<span style="height:5px"></span>') + '</button>'; }).join('') + '</div>';
     if (!so) h += barbChips('agBarb', S.ui.agBarb, 'todos', 'Todos');
     const exp = expediente(dia); const avisos = [];
-    if (!exp) avisos.push('Barbearia fechada nesse dia.');
+    if (!exp) avisos.push('Estúdio fechado nesse dia.');
     else {
       avisos.push('Aberto das ' + exp.abre + ' às ' + exp.fecha + (cfg().almoco && cfg().almoco.ini ? ' · almoço ' + cfg().almoco.ini + '–' + cfg().almoco.fim : '') + '.');
       (cfg().barbeiros || []).filter((b) => folgaNoDia(b, dia) && (!so || b.id === so)).forEach((b) => avisos.push((so ? 'Você está' : b.nome) + ' de folga.'));
@@ -1459,20 +1459,20 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
           '<button type="button" class="btn bad sm" data-act="barbRemover" data-id="' + esc(b.id) + '">' + conf('br' + b.id, 'Remover da equipe') + '</button></section>';
       });
       if (S.papel === 'dono') {
-        const opBarb = (sel) => '<option value="">Não atende (sócio/recepção)</option>' + (c.barbeiros || []).map((b) => '<option value="' + esc(b.id) + '"' + (sel === b.id ? ' selected' : '') + '>' + esc(b.nome) + '</option>').join('');
+        const opBarb = (sel) => '<option value="">Não atende (sócia/recepção)</option>' + (c.barbeiros || []).map((b) => '<option value="' + esc(b.id) + '"' + (sel === b.id ? ' selected' : '') + '>' + esc(b.nome) + '</option>').join('');
         h += '<section class="card"><span class="h2">Acesso ao app</span><span class="sub">Cada pessoa entra com o próprio e-mail. A profissional vê só a própria agenda, as clientes e os próprios ganhos e comandas. O caixa do estúdio e os ganhos das colegas ficam com você.</span>';
         S.acessos.forEach((a) => {
           h += '<div class="acesso"><div class="grow"><b>' + esc(a.email) + (a.eu ? ' (você)' : '') + '</b></div>' +
-            (a.eu ? '<span class="tiny">Dono</span>' :
-            '<div class="grid2"><div class="field"><label for="ac-p-' + esc(a.user_id) + '">Permissão</label><select id="ac-p-' + esc(a.user_id) + '" data-chg="acessoAjustar" data-id="' + esc(a.user_id) + '"><option value="barbeiro"' + (a.papel === 'barbeiro' ? ' selected' : '') + '>Profissional</option><option value="dono"' + (a.papel === 'dono' ? ' selected' : '') + '>Sócio (acesso total)</option></select></div>' +
+            (a.eu ? '<span class="tiny">Dona</span>' :
+            '<div class="grid2"><div class="field"><label for="ac-p-' + esc(a.user_id) + '">Permissão</label><select id="ac-p-' + esc(a.user_id) + '" data-chg="acessoAjustar" data-id="' + esc(a.user_id) + '"><option value="barbeiro"' + (a.papel === 'barbeiro' ? ' selected' : '') + '>Profissional</option><option value="dono"' + (a.papel === 'dono' ? ' selected' : '') + '>Sócia (acesso total)</option></select></div>' +
             '<div class="field"><label for="ac-b-' + esc(a.user_id) + '">Na agenda é</label><select id="ac-b-' + esc(a.user_id) + '" data-chg="acessoAjustar" data-id="' + esc(a.user_id) + '">' + opBarb(a.barbeiro_id || '') + '</select></div></div>' +
             '<button type="button" class="btn bad sm" data-act="acessoRemover" data-id="' + esc(a.user_id) + '">' + conf('acr' + a.user_id, 'Tirar acesso') + '</button>') + '</div>';
         });
-        S.convites.forEach((cv) => { h += '<div class="item"><span class="grow">' + esc(cv.email) + ' <span class="tiny">convidado · ' + esc(cv.barbeiro_id ? barbNome(cv.barbeiro_id) : (cv.papel === 'dono' ? 'sócio' : 'sem barbeiro')) + ' · aguardando cadastro</span></span><button type="button" class="btn sm" data-act="desconvidar" data-v="' + esc(cv.email) + '" aria-label="Cancelar convite">✕</button></div>'; });
+        S.convites.forEach((cv) => { h += '<div class="item"><span class="grow">' + esc(cv.email) + ' <span class="tiny">convidada · ' + esc(cv.barbeiro_id ? barbNome(cv.barbeiro_id) : (cv.papel === 'dono' ? 'sócia' : 'sem agenda')) + ' · aguardando cadastro</span></span><button type="button" class="btn sm" data-act="desconvidar" data-v="' + esc(cv.email) + '" aria-label="Cancelar convite">✕</button></div>'; });
         h += '<span class="lbl">Convidar alguém</span>' +
-          '<div class="field"><label for="cv-email">E-mail</label><input id="cv-email" type="email" data-f="cvEmail" value="' + esc(fv('cvEmail')) + '" placeholder="barbeiro@email.com"></div>' +
+          '<div class="field"><label for="cv-email">E-mail</label><input id="cv-email" type="email" data-f="cvEmail" value="' + esc(fv('cvEmail')) + '" placeholder="profissional@email.com"></div>' +
           '<div class="grid2"><div class="field"><label for="cv-barb">Na agenda é</label><select id="cv-barb" data-f="cvBarb">' + opBarb(fv('cvBarb', ((c.barbeiros || [])[1] || (c.barbeiros || [])[0] || {}).id || '')) + '</select></div>' +
-          '<div class="field"><label for="cv-papel">Permissão</label><select id="cv-papel" data-f="cvPapel"><option value="barbeiro"' + (fv('cvPapel', 'barbeiro') === 'barbeiro' ? ' selected' : '') + '>Profissional</option><option value="dono"' + (fv('cvPapel') === 'dono' ? ' selected' : '') + '>Sócio (acesso total)</option></select></div></div>' +
+          '<div class="field"><label for="cv-papel">Permissão</label><select id="cv-papel" data-f="cvPapel"><option value="barbeiro"' + (fv('cvPapel', 'barbeiro') === 'barbeiro' ? ' selected' : '') + '>Profissional</option><option value="dono"' + (fv('cvPapel') === 'dono' ? ' selected' : '') + '>Sócia (acesso total)</option></select></div></div>' +
           '<button type="button" class="btn pri" data-act="convidar">Convidar</button></section>';
         h += '<section class="card"><span class="h2">Fotos dos trabalhos</span><span class="sub">Cada profissional pode pôr até 30 fotos dos trabalhos (antes e depois, mapping, design). Elas aparecem na página de agendamento, na hora de escolher a profissional.</span><button type="button" class="btn" data-act="go" data-v="barbeiro">Ver e pôr fotos</button></section>';
         h += cardAvisos();
@@ -1547,7 +1547,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
         '<span class="tiny">Muda só a página que a cliente abre pelo link. A aparência do seu app fica logo acima, em "Aparência do app".</span>' +
         '<div class="field"><label for="bb-msg">Mensagem de boas-vindas</label><textarea id="bb-msg" data-f="bbMsg" maxlength="240" placeholder="Ex.: Cílios e sobrancelhas com carinho e hora marcada.">' + esc(fv('bbMsg', c.mensagem || '')) + '</textarea></div>' +
         '<div class="field"><label for="bb-end">Endereço</label><input id="bb-end" data-f="bbEnd" value="' + esc(fv('bbEnd', c.endereco || '')) + '" placeholder="Rua, número, bairro"></div>' +
-        '<div class="grid2"><div class="field"><label for="bb-insta">Instagram</label><input id="bb-insta" data-f="bbInsta" value="' + esc(fv('bbInsta', c.instagram ? '@' + c.instagram : '')) + '" placeholder="@suabarbearia"></div>' +
+        '<div class="grid2"><div class="field"><label for="bb-insta">Instagram</label><input id="bb-insta" data-f="bbInsta" value="' + esc(fv('bbInsta', c.instagram ? '@' + c.instagram : '')) + '" placeholder="@seuestudio"></div>' +
         '<div class="field"><label for="bb-zap">WhatsApp do estúdio</label><input id="bb-zap" inputmode="tel" data-f="bbZap" value="' + esc(fv('bbZap', c.whatsapp || '')) + '" placeholder="(21) 99999-9999"></div></div>' +
         '<span class="tiny">Dias e horários de funcionamento ficam na aba Horários.</span>' +
         '<div class="field"><label for="bb-meta">Meta de faturamento do mês (R$)</label><input id="bb-meta" inputmode="numeric" data-f="bbMeta" value="' + esc(fv('bbMeta', c.metaMes)) + '"></div>' +
@@ -1555,13 +1555,13 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       h += '<section class="card"><span class="h2">Link de agendamento da cliente</span><span class="sub">Coloque na bio do Instagram, mande no WhatsApp e imprima o QR pro balcão. A cliente agenda sem precisar de conta.</span>' +
         '<div class="row wrap" style="align-items:flex-start"><div class="qr" id="qr-box" role="img" aria-label="QR code do link de agendamento"></div><div class="stack grow"><span class="link">' + esc(linkPublico()) + '</span>' +
         '<button type="button" class="btn pri" data-act="copiarLink">Copiar link</button><a class="btn" href="' + esc(linkPublico()) + '" target="_blank" rel="noopener">Abrir página</a><span class="tiny">Pra imprimir o QR: toque e segure (ou clique com o botão direito) e salve a imagem.</span></div></div></section>';
-      h += '<section class="card"><span class="h2">Sua conta</span><span class="sub">' + esc(S.user ? S.user.email : '') + ' · ' + (S.papel === 'dono' ? 'dono' : 'barbeiro') + '</span><button type="button" class="btn" data-act="sair">Sair da conta</button></section>';
+      h += '<section class="card"><span class="h2">Sua conta</span><span class="sub">' + esc(S.user ? S.user.email : '') + ' · ' + (S.papel === 'dono' ? 'dona' : 'profissional') + '</span><button type="button" class="btn" data-act="sair">Sair da conta</button></section>';
       if (S.papel === 'dono') h += '<section class="card"><span class="h2">Recomeçar do zero</span><span class="sub">Apaga agenda, comandas, clientes e vales. Serviços e equipe continuam.</span><button type="button" class="btn bad" data-act="zerar">' + conf('zerar', 'Apagar movimento') + '</button></section>';
     }
     return h;
   }
 
-  // ---------- Fotos dos trabalhos (aparecem pra cliente na hora de escolher o barbeiro) ----------
+  // ---------- Fotos dos trabalhos (aparecem pra cliente na hora de escolher a profissional) ----------
   const urlFoto = (c) => urlSupabase((window.APP_CONFIG || {}).SUPABASE_URL) + '/storage/v1/object/public/trabalhos/' + c.split('/').map(encodeURIComponent).join('/');
   function cardFotos(b) {
     const fs = (S.fotos || []).filter((f) => f.barbeiro_id === b.id);
@@ -1792,7 +1792,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     menuConta: () => {
       if (S.status !== 'ok') return;
       const b = barb(S.meuBarb) || (S.papel === 'dono' ? (cfg().barbeiros || [])[0] : null);
-      abrirFolha('<div class="row" style="gap:12px;margin-bottom:6px"><span class="logo" aria-hidden="true">' + document.getElementById('logo').innerHTML + '</span><div><b>' + esc(b ? primeiroNome(b.nome) : 'Sua conta') + '</b><div class="tiny">' + esc(S.user ? S.user.email : '') + ' · ' + (S.papel === 'dono' ? 'dono' : 'barbeiro') + '</div></div></div>' +
+      abrirFolha('<div class="row" style="gap:12px;margin-bottom:6px"><span class="logo" aria-hidden="true">' + document.getElementById('logo').innerHTML + '</span><div><b>' + esc(b ? primeiroNome(b.nome) : 'Sua conta') + '</b><div class="tiny">' + esc(S.user ? S.user.email : '') + ' · ' + (S.papel === 'dono' ? 'dona' : 'profissional') + '</div></div></div>' +
         '<button type="button" class="btn folha-item" data-act="irConta">Minha conta e avisos</button>' +
         '<button type="button" class="btn folha-item" data-act="copiarLink">Copiar link de agendamento</button>' +
         (S.ehAdmin ? '<a class="btn folha-item folha-admin" href="admin.html">Painel do administrador</a>' : '') +
@@ -2131,7 +2131,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const ok = await salvarCfg({ nome: String(fv('bbNome', c.nome)).trim() || c.nome, cor: fv('bbCor', corMarca(c.cor)), tema: fv('bbTema', c.tema || 'claro'),
         mensagem: String(fv('bbMsg', c.mensagem || '')).trim().slice(0, 240), endereco: String(fv('bbEnd', c.endereco || '')).trim(), instagram: insta, whatsapp: String(fv('bbZap', c.whatsapp || '')).trim(),
         metaMes: num(fv('bbMeta', c.metaMes)) });
-      if (ok) { ['bbNome', 'bbCor', 'bbTema', 'bbMsg', 'bbEnd', 'bbInsta', 'bbZap', 'bbAbre', 'bbFecha', 'bbInt', 'bbMeta'].forEach((k) => { delete S.f[k]; }); toast('Barbearia atualizada'); }
+      if (ok) { ['bbNome', 'bbCor', 'bbTema', 'bbMsg', 'bbEnd', 'bbInsta', 'bbZap', 'bbAbre', 'bbFecha', 'bbInt', 'bbMeta'].forEach((k) => { delete S.f[k]; }); toast('Estúdio atualizado'); }
     },
     zerar: async () => {
       if (precisaConfirmar('zerar')) return;
