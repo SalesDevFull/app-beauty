@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#F7EFEA">
 <title>Agendar horário</title>
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=5">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=6">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=6">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap">
 <style>
-/* Página pública da barbearia: uma coluna estreita, faixa de madeira com a logo, e o estilo (claro ou escuro) que o dono escolheu. */
+/* Página pública do estúdio: uma coluna estreita, faixa de madeira com a logo, e o estilo (claro ou escuro) que o dono escolheu. */
 :root{
   color-scheme: light;
   --bg:#F4ECDF; --surface:#FFFBF4; --surface2:#FBF3E6; --line:#E0CFB6; --fg:#2A1B12; --muted:#6B5544; --dim:#8C7560;
@@ -190,6 +190,14 @@ h2{font-size:26px;color:var(--fg)}
 .op .preco{font-weight:700;color:var(--fg);font-size:15px}
 .marca-ok.quad{border-radius:8px}
 .lembrar{display:flex;flex-direction:column;gap:8px}
+.op .desc{display:block;font-size:12px;color:var(--muted);margin-top:2px;line-height:1.35}
+.ficha,.regras{gap:8px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.35;cursor:pointer;padding:4px 0}
+.check input{appearance:none;-webkit-appearance:none;width:22px;height:22px;min-width:22px;min-height:0;padding:0;flex:none;box-shadow:none;margin:0;border:2px solid var(--dim);border-radius:6px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.check input:checked{background:var(--marca);border-color:var(--marca)}
+.check input:checked::after{content:"";width:5px;height:10px;border:solid var(--marca-ink);border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.check.forte span{font-weight:600}
+.regras-txt{white-space:pre-line;font-size:14px;line-height:1.45;color:var(--fg)}
 .legal{display:block;font-size:12px;line-height:1.4;color:var(--dim);text-align:center}
 .legal a{color:var(--muted)}
 .lembrar .btn{display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
@@ -241,6 +249,16 @@ input{border-radius:14px;min-height:52px}
 #galeria .g-bot .btn{background:var(--marca);color:var(--marca-ink)}
 .poste{border-color:var(--marca)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:root,:root[data-tema="escuro"]{--bg:#151012;--surface:#1E181B;--surface2:#271F23;--line:#352B30;--fg:#F6ECE8;--muted:#BBA9A3;--dim:#8E7C76;
+  --font:'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;--display:'Playfair Display', Georgia, serif}
+:root[data-tema="claro"]{--bg:#F7EFEA;--surface:#FFFCFA;--surface2:#F3E7E1;--line:#EADBD3;--fg:#3A2A2A;--muted:#7A625B;--dim:#A08E88}
+h1,h2,.topo h1{font-family:var(--display);text-transform:none;letter-spacing:0}
+h2{font-size:28px;font-weight:600}
+.btn,.chip,.lbl,.slot,.dia{font-family:var(--font)}
+.logo{background:#F4E3DC}
+.poste{width:34px!important;height:34px!important;border-radius:50%!important;border:3px solid var(--line)!important;border-top-color:var(--marca)!important;background:transparent!important;animation:fioGira .9s linear infinite}
+.poste i{display:none!important}
+@keyframes fioGira{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -255,7 +273,7 @@ input{border-radius:14px;min-height:52px}
 <script>
 (function () {
   'use strict';
-  const MASCOTE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" class="mascote"><g class="m-corpo"><path d="M28 220 C30 178 58 160 100 160 C142 160 170 178 172 220 Z" fill="#EFE3CF"/><path d="M62 220 L70 170 C80 166 90 164 100 164 C110 164 120 166 130 170 L138 220 Z" fill="#6B4227"/><path d="M100 166 L84 220 M100 166 L116 220" stroke="#5A361F" stroke-width="2" fill="none"/><circle cx="100" cy="196" r="2.6" fill="#C9A35B"/><circle cx="100" cy="210" r="2.6" fill="#C9A35B"/><path d="M78 160 L100 176 L90 186 Z" fill="#FFFFFF"/><path d="M122 160 L100 176 L110 186 Z" fill="#FFFFFF"/><g class="m-gravata"><path d="M100 172 L80 162 C76 161 74 164 75 168 L77 180 C78 184 81 185 84 183 Z" fill="#8E2F35"/><path d="M100 172 L120 162 C124 161 126 164 125 168 L123 180 C122 184 119 185 116 183 Z" fill="#8E2F35"/><rect x="94" y="166" width="12" height="12" rx="4" fill="#A63B42"/></g><g transform="translate(140 186) rotate(-20)"><rect x="-12" y="4" width="24" height="16" rx="3" fill="#E2D3BA"/><path d="M-4 4 L2 -14 M4 4 L-2 -14" stroke="#9AA3AD" stroke-width="2.4" stroke-linecap="round"/></g></g><rect x="86" y="138" width="28" height="26" rx="10" fill="#D99E76"/><ellipse cx="50" cy="104" rx="11" ry="15" fill="#E7AE86"/><ellipse cx="150" cy="104" rx="11" ry="15" fill="#E7AE86"/><ellipse cx="51" cy="105" rx="5" ry="8" fill="#D2926B"/><ellipse cx="149" cy="105" rx="5" ry="8" fill="#D2926B"/><path d="M54 92 C54 58 74 40 100 40 C126 40 146 58 146 92 L146 112 C146 140 126 156 100 156 C74 156 54 140 54 112 Z" fill="#EDB990"/><path d="M52 92 C42 60 52 30 78 18 C98 8 126 8 142 22 C156 34 156 58 148 92 C144 74 134 64 120 62 C128 56 126 46 116 44 C104 42 94 52 84 58 C70 64 58 74 52 92 Z" fill="#3A2416"/><path d="M60 52 C66 30 88 16 112 16 C96 22 80 34 72 50 Z" fill="#5B3A24"/><path d="M118 18 C138 20 150 34 150 54 C144 40 132 30 118 26 Z" fill="#5B3A24"/><path d="M84 30 C96 24 112 24 124 30" stroke="#6E4A30" stroke-width="3" stroke-linecap="round" fill="none"/><path class="m-sob" d="M68 82 C74 74 86 74 92 80" stroke="#3A2416" stroke-width="6" stroke-linecap="round" fill="none"/><path class="m-sob" d="M108 80 C114 74 126 74 132 82" stroke="#3A2416" stroke-width="6" stroke-linecap="round" fill="none"/><g class="m-olhos"><ellipse cx="80" cy="96" rx="7" ry="8.5" fill="#2A1B12"/><ellipse cx="120" cy="96" rx="7" ry="8.5" fill="#2A1B12"/><circle cx="82.5" cy="93" r="2.4" fill="#FFFFFF"/><circle cx="122.5" cy="93" r="2.4" fill="#FFFFFF"/></g><ellipse cx="68" cy="116" rx="9" ry="5.5" fill="#E58E7A" opacity=".45"/><ellipse cx="132" cy="116" rx="9" ry="5.5" fill="#E58E7A" opacity=".45"/><path d="M100 98 C96 108 92 114 96 118 C99 120 104 120 106 117" stroke="#C98763" stroke-width="3" fill="#E3A781" stroke-linecap="round"/><path class="m-boca" d="M88 134 C94 142 106 142 112 134 C106 137 94 137 88 134 Z" fill="#8E2F35"/><g class="m-bigode"><path d="M100 120 C92 116 80 116 72 124 C66 130 58 132 52 128 C46 124 46 116 52 114 C48 120 54 124 58 120 C62 116 66 112 74 112 C84 112 94 114 100 118 C106 114 116 112 126 112 C134 112 138 116 142 120 C146 124 152 120 148 114 C154 116 154 124 148 128 C142 132 134 130 128 124 C120 116 108 116 100 120 Z" fill="#3A2416"/><path d="M100 119 C92 115 82 116 76 120 C86 116 94 117 100 121 Z" fill="#5B3A24"/></g></svg>';
+  const MASCOTE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220" class="mascote"><circle cx="100" cy="112" r="92" fill="#F4E3DC"/><circle cx="100" cy="112" r="92" fill="none" stroke="#C98B7B" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/><path d="M50 74 Q100 46 152 70" fill="none" stroke="#8C6A5D" stroke-width="8" stroke-linecap="round"/><path d="M44 108 Q100 150 156 108" fill="none" stroke="#3A2A2A" stroke-width="6" stroke-linecap="round"/><g fill="none" stroke="#3A2A2A" stroke-width="3.6" stroke-linecap="round"><path d="M57.4 116.9 Q51.6 124.7 44.9 129.9"/><path d="M71.6 123.6 Q66.7 134.8 61.1 142.3"/><path d="M85.8 127.7 Q83.2 139.4 80.4 147.3"/><path d="M100.0 129.0 Q100.0 141.0 100.0 149.0"/><path d="M114.2 127.7 Q116.8 139.4 119.6 147.3"/><path d="M128.4 123.6 Q133.3 134.8 138.9 142.3"/><path d="M142.6 116.9 Q148.4 124.7 155.1 129.9"/></g><path d="M160 40 C162 50 165 53 175 55 C165 57 162 60 160 70 C158 60 155 57 145 55 C155 53 158 50 160 40 Z" fill="#C98B7B"/><path d="M38 150 C39 155 41 157 46 158 C41 159 39 161 38 166 C37 161 35 159 30 158 C35 157 37 155 38 150 Z" fill="#E3B5A4"/></svg>';
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const brl = (n) => (Number(n) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const pad = (n) => String(n).padStart(2, '0');
@@ -284,6 +302,11 @@ input{border-radius:14px;min-height:52px}
   const slug = new URLSearchParams(location.search).get('b') || '';
   const KEY = 'ag_pend_' + slug;
   const st = { b: null, servs: [], barb: 'qualquer', dia: hoje(), hora: null, ocup: {}, carregandoDia: false, enviando: false, erro: '', feito: null, pend: null, pago: false, confirmaDesistir: false, tela: '', metodo: '', gerando: false, erroPag: '', brick: null };
+  // Ficha de saúde (as mesmas perguntas que a profissional vê na ficha da cliente).
+  const ANAM = [['alergia', 'Tenho alergia a cola, esmalte, látex, henna ou cosméticos'], ['olhos', 'Estou com problema nos olhos (irritação, conjuntivite, terçol) ou fiz cirurgia recente'],
+    ['lente', 'Uso lente de contato'], ['gestante', 'Estou grávida ou amamentando'], ['pele', 'Faço tratamento de pele, uso ácidos no rosto ou faço quimioterapia'], ['reacao', 'Já tive reação em procedimento de cílios ou sobrancelha']];
+  st.ficha = { itens: [], obs: '', aceite: false }; st.regrasOk = false;
+  try { const fa = JSON.parse(localStorage.getItem('ag_ficha') || 'null'); if (fa && Array.isArray(fa.itens)) { st.ficha.itens = fa.itens.filter((k) => ANAM.some((q) => q[0] === k)); st.ficha.obs = String(fa.obs || '').slice(0, 300); } } catch (e) { /* sem armazenamento */ }
   try { st.nome = localStorage.getItem('ag_nome') || ''; st.tel = localStorage.getItem('ag_tel') || ''; st.email = localStorage.getItem('ag_email') || ''; } catch (e) { st.nome = ''; st.tel = ''; st.email = ''; }
   let sb = null, timer = null, poll = null;
 
@@ -347,20 +370,20 @@ input{border-radius:14px;min-height:52px}
     if (b.instagram) h += '<div class="row">' + ICON.insta + '<a href="https://instagram.com/' + encodeURIComponent(b.instagram) + '" target="_blank" rel="noopener">@' + esc(b.instagram) + '</a></div>';
     if (b.whatsapp) { const w = waLink(b.whatsapp, 'Oi! Vim pela página de agendamento.'); h += '<div class="row">' + ICON.zap + '<a href="' + esc(w) + '" target="_blank" rel="noopener">' + esc(b.whatsapp) + '</a></div>'; }
     if ((b.formas || []).length) h += '<div class="row">' + ICON.card + '<span>Aceita ' + esc(b.formas.join(', ').replace(/, ([^,]*)$/, ' e $1')) + '</span></div>';
-    return h ? '<section class="card info"><span class="lbl">Sobre a barbearia</span>' + h + '</section>' : '';
+    return h ? '<section class="card info"><span class="lbl">Sobre o estúdio</span>' + h + '</section>' : '';
   }
 
-  // Lembrete no celular do cliente: evento na agenda dele com aviso 1 dia e 1 hora antes.
+  // Lembrete no celular da cliente: evento na agenda dele com aviso 1 dia e 1 hora antes.
   function lembrarBotoes(f) {
     if (!f || !f.dia || !f.hora) return '';
     const ini = new Date(f.dia + 'T' + f.hora + ':00-03:00'); if (isNaN(ini)) return '';
     const fim = new Date(ini.getTime() + (Number(f.dur) || 30) * 60000);
     const z = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
     const titulo = (f.servico || 'Horário') + ' · ' + st.b.nome;
-    const det = 'Com ' + (f.barbeiro || 'a barbearia') + '.' + (st.b.whatsapp ? ' WhatsApp da barbearia: ' + st.b.whatsapp : '');
+    const det = 'Com ' + (f.barbeiro || 'o estúdio') + '.' + (st.b.whatsapp ? ' WhatsApp do estúdio: ' + st.b.whatsapp : '');
     const loc = st.b.endereco || st.b.nome;
     const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Degrade//Agendamento//PT', 'BEGIN:VEVENT',
-      'UID:' + z(ini) + '-' + Math.random().toString(36).slice(2) + '@degrade', 'DTSTAMP:' + z(new Date()), 'DTSTART:' + z(ini), 'DTEND:' + z(fim),
+      'UID:' + z(ini) + '-' + Math.random().toString(36).slice(2) + '@fioafio', 'DTSTAMP:' + z(new Date()), 'DTSTART:' + z(ini), 'DTEND:' + z(fim),
       'SUMMARY:' + titulo.replace(/[,;]/g, ' '), 'DESCRIPTION:' + det.replace(/[,;]/g, ' '), 'LOCATION:' + loc.replace(/[,;]/g, ' '),
       'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', 'DESCRIPTION:Amanhã: ' + titulo.replace(/[,;]/g, ' '), 'END:VALARM',
       'BEGIN:VALARM', 'TRIGGER:-PT1H', 'ACTION:DISPLAY', 'DESCRIPTION:Daqui a 1 hora: ' + titulo.replace(/[,;]/g, ' '), 'END:VALARM',
@@ -385,11 +408,11 @@ input{border-radius:14px;min-height:52px}
       app.innerHTML = topo() +
         '<div class="card ok"><div class="centro"><span class="masc m-festa" role="img" aria-label="Mascote comemorando">' + MASCOTE + '</span><h2>Horário marcado!</h2></div>' +
         '<div class="linha"><span>Serviço</span><b>' + esc(f.servico) + '</b></div>' +
-        '<div class="linha"><span>Barbeiro</span><b>' + esc(f.barbeiro) + '</b></div>' +
+        '<div class="linha"><span>Profissional</span><b>' + esc(f.barbeiro) + '</b></div>' +
         '<div class="linha"><span>Quando</span><b>' + esc(diaLongo(f.dia)) + ' às ' + esc(f.hora) + '</b></div>' +
         (f.sinal ? '<div class="linha"><span>Sinal pago</span><b>' + brl(f.sinal) + '</b></div>' : '') + '</div>' +
         lembrarBotoes(f) +
-        '<p class="sub" style="margin:0">A barbearia já está vendo seu horário. Se precisar desmarcar, fale com ela pelo WhatsApp.</p>' +
+        '<p class="sub" style="margin:0">O estúdio já está vendo seu horário. Se precisar desmarcar, fale com o estúdio pelo WhatsApp.</p>' +
         infos() + '<button type="button" class="btn sec" data-a="novo">Marcar outro horário</button>';
       return;
     }
@@ -408,13 +431,13 @@ input{border-radius:14px;min-height:52px}
     if (P === 1) {
       h += cab('Escolha os serviços', 'pode marcar mais de um') + '<div class="lista" role="group" aria-label="Serviços">' + b.servicos.map((x) => {
         const on = st.servs.indexOf(x.id) >= 0;
-        return '<button type="button" class="op' + (on ? ' on' : '') + '" role="checkbox" data-a="serv" data-v="' + esc(x.id) + '" aria-checked="' + on + '"><div style="flex:1;min-width:0"><b>' + esc(x.nome) + '</b><span><span class="preco">' + brl(x.preco) + '</span> · ' + esc(x.dur) + ' min</span></div><span class="marca-ok quad">' + (on ? ok : '') + '</span></button>';
+        return '<button type="button" class="op' + (on ? ' on' : '') + '" role="checkbox" data-a="serv" data-v="' + esc(x.id) + '" aria-checked="' + on + '"><div style="flex:1;min-width:0"><b>' + esc(x.nome) + '</b><span><span class="preco">' + brl(x.preco) + '</span> · ' + esc(x.dur) + ' min</span>' + (x.desc ? '<small class="desc">' + esc(x.desc) + '</small>' : '') + '</div><span class="marca-ok quad">' + (on ? ok : '') + '</span></button>';
       }).join('') + '</div>';
       if (b.mensagem) h += '<div class="card" style="padding:12px 14px;gap:2px"><b style="font-size:15px">' + esc(b.mensagem) + '</b>' + ((b.formas || []).length ? '<span class="tiny">Aceita ' + esc(b.formas.join(', ').replace(/, ([^,]*)$/, ' e $1')) + '.</span>' : '') + '</div>';
       acao = (s ? '<div class="resumo"><span>' + (s.qtd > 1 ? s.qtd + ' serviços' : esc(s.nome)) + ' · ' + esc(s.dur) + ' min</span><span>Total <b>' + brl(s.preco) + '</b></span></div>' : '') +
         '<button type="button" class="btn" data-a="ir" data-v="2"' + (s ? '' : ' disabled') + '>' + (s ? 'Continuar' : 'Escolha pelo menos um') + '</button>';
     } else if (P === 2) {
-      h += cab('Escolha o barbeiro', esc(s.nome)) + (b.barbeiros.some((x) => (x.fotos || []).length) ? '<span class="tiny" style="margin-top:-8px">Toque nas fotos pra ver os trabalhos.</span>' : '') + cardsBarbeiros();
+      h += cab('Escolha a profissional', esc(s.nome)) + (b.barbeiros.some((x) => (x.fotos || []).length) ? '<span class="tiny" style="margin-top:-8px">Toque nas fotos pra ver os trabalhos.</span>' : '') + cardsBarbeiros();
       acao = '<div class="row">' + voltar + '<button type="button" class="btn" data-a="ir" data-v="3">Continuar</button></div>';
     } else {
       const bnome = st.barb === 'qualquer' ? 'quem estiver livre' : ((b.barbeiros.find((x) => x.id === st.barb) || {}).nome || '');
@@ -429,19 +452,29 @@ input{border-radius:14px;min-height:52px}
       else {
         const ms = livres();
         h += '<div class="passo-lbl" style="margin:0"><span class="lbl">' + esc(diaLongo(st.dia)) + '</span><span class="tiny">' + (ms.length ? ms.length + (ms.length === 1 ? ' livre' : ' livres') : '') + '</span></div>';
-        if (!ms.length) h += '<span class="vazio">' + (st.barb !== 'qualquer' && (() => { const bb = b.barbeiros.find((x) => x.id === st.barb); return bb && (bb.folgas || []).indexOf(parseD(st.dia).getDay()) >= 0; })() ? 'Esse barbeiro está de folga nesse dia. Escolha outro dia ou outro barbeiro.' : 'Sem horário livre nesse dia. Tente outro dia ou outro barbeiro.') + '</span>';
+        if (!ms.length) h += '<span class="vazio">' + (st.barb !== 'qualquer' && (() => { const bb = b.barbeiros.find((x) => x.id === st.barb); return bb && (bb.folgas || []).indexOf(parseD(st.dia).getDay()) >= 0; })() ? 'Essa profissional está de folga nesse dia. Escolha outro dia ou outra profissional.' : 'Sem horário livre nesse dia. Tente outro dia ou outra profissional.') + '</span>';
         else h += '<div class="grid4">' + ms.map((m) => { const hh = toHora(m); return '<button type="button" class="slot' + (st.hora === hh ? ' on' : '') + '" data-a="hora" data-v="' + hh + '" aria-pressed="' + (st.hora === hh) + '">' + hh + '</button>'; }).join('') + '</div>';
       }
       h += '</section>';
       h += '<section><span class="lbl">Seus dados</span>' +
         '<div class="field"><label for="f-nome">Nome</label><input id="f-nome" autocomplete="name" value="' + esc(st.nome) + '"></div>' +
         '<div class="field"><label for="f-tel">WhatsApp com DDD</label><input id="f-tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="(21) 99999-9999" value="' + esc(st.tel) + '"></div></section>';
+      if (b.anamnese) {
+        h += '<section class="card ficha"><span class="lbl">Ficha de saúde</span><span class="tiny">Pra sua segurança. Marque o que se aplica a você:</span>' +
+          ANAM.map((q) => '<label class="check"><input type="checkbox" id="an-' + q[0] + '"' + (st.ficha.itens.indexOf(q[0]) >= 0 ? ' checked' : '') + '><span>' + esc(q[1]) + '</span></label>').join('') +
+          '<div class="field"><label for="an-obs">Algo mais que a profissional precisa saber? (opcional)</label><textarea id="an-obs" maxlength="300" rows="2">' + esc(st.ficha.obs) + '</textarea></div>' +
+          '<label class="check forte"><input type="checkbox" id="an-aceite"' + (st.ficha.aceite ? ' checked' : '') + '><span>Declaro que as informações são verdadeiras e autorizo o procedimento.</span></label></section>';
+      }
+      if (b.regras) {
+        h += '<section class="card regras"><span class="lbl">Regras do estúdio</span><div class="regras-txt">' + esc(b.regras) + '</div>' +
+          '<label class="check forte"><input type="checkbox" id="rg-aceite"' + (st.regrasOk ? ' checked' : '') + '><span>Li e concordo com as regras.</span></label></section>';
+      }
       if (st.erro) h += '<p class="erro" role="alert">' + esc(st.erro) + '</p>';
-      const pronto = st.hora && st.nome.trim().length >= 2 && st.tel.replace(/\D/g, '').length >= 10;
+      const pronto = podeConfirmar();
       const tudo = b.sinal && Number(b.sinal.pct) >= 100;
       const rotulo = st.enviando ? 'Reservando…' : (b.sinal ? (tudo ? 'Pagar e agendar' : 'Pagar sinal e agendar') : 'Confirmar agendamento');
       acao = (st.hora ? '<div class="card" style="padding:12px 14px;gap:2px"><div style="display:flex;justify-content:space-between;gap:10px"><b style="font-size:16px">' + esc(diaLongo(st.dia).split(',')[0]) + ' · ' + esc(st.hora) + '</b><b style="color:var(--marca)">' + brl(s.preco) + '</b></div>' +
-          (b.sinal ? '<span class="tiny">' + (tudo ? 'Pagamento de ' + brl(sinalV) : 'Sinal de ' + brl(sinalV)) + ' ' + comoPaga(b.sinal) + (tudo ? '' : ' · o resto na barbearia') + '. O horário fica reservado por ' + esc(b.sinal.prazo) + ' min enquanto você paga.</span>' : '<span class="tiny">Você paga na barbearia.</span>') + '</div>' : '') +
+          (b.sinal ? '<span class="tiny">' + (tudo ? 'Pagamento de ' + brl(sinalV) : 'Sinal de ' + brl(sinalV)) + ' ' + comoPaga(b.sinal) + (tudo ? '' : ' · o resto no estúdio') + '. O horário fica reservado por ' + esc(b.sinal.prazo) + ' min enquanto você paga.</span>' : '<span class="tiny">Você paga no estúdio.</span>') + '</div>' : '') +
         '<div class="row">' + voltar + '<button type="button" class="btn" data-a="confirmar"' + (pronto && !st.enviando ? '' : ' disabled') + '>' + esc(rotulo) + '</button></div>' +
         '<span class="legal">Ao agendar, você concorda com os <a href="termos.html" target="_blank" rel="noopener">termos de uso</a> e a <a href="privacidade.html" target="_blank" rel="noopener">política de privacidade</a>.</span>';
     }
@@ -462,7 +495,7 @@ input{border-radius:14px;min-height:52px}
     };
     let h = '<div class="barbs">';
     b.barbeiros.forEach((x) => { const fs = x.fotos || []; h += um(x.id, x.nome, fs.length ? fs.length + (fs.length === 1 ? ' trabalho' : ' trabalhos') : 'Barbeiro', fs.length ? '<img class="av" src="' + esc(urlFoto(fs[0].c)) + '" alt="" loading="lazy">' : '<span class="av" aria-hidden="true">' + inicial(x.nome) + '</span>', fs); });
-    h += um('qualquer', 'Qualquer um', 'Primeiro horário livre', '<span class="av" aria-hidden="true">✂</span>', null);
+    h += um('qualquer', 'Qualquer uma', 'Primeiro horário livre', '<span class="av" aria-hidden="true">✦</span>', null);
     return h + '</div>';
   }
 
@@ -535,7 +568,7 @@ input{border-radius:14px;min-height:52px}
     let h = topo() + '<div class="passos" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="passo-lbl"><span class="lbl">Passo 4 de 4</span><span class="tiny"></span></div>' +
       '<div class="card pix"><div class="centro"><span class="masc m-espera" aria-hidden="true">' + MASCOTE + '</span><h2>' + (tudo ? 'Falta só pagar' : 'Falta só o sinal') + '</h2>' +
       '<span class="sub">' + esc(p.servico) + ' com ' + esc(p.barbeiro) + ', ' + esc(diaLongo(p.dia)) + ' às ' + esc(p.hora) + '</span>' +
-      '<span class="valor">' + brl(sn.valor) + '</span>' + (tudo ? '' : '<span class="tiny">O restante, ' + brl(Math.max(0, Number(p.preco) - Number(sn.valor))) + ', você paga na barbearia.</span>') + '</div>';
+      '<span class="valor">' + brl(sn.valor) + '</span>' + (tudo ? '' : '<span class="tiny">O restante, ' + brl(Math.max(0, Number(p.preco) - Number(sn.valor))) + ', você paga no estúdio.</span>') + '</div>';
     if (temPix && temCartao) {
       h += '<div class="metodos" role="group" aria-label="Como pagar">' +
         '<button type="button" class="chip' + (m === 'pix' ? ' on' : '') + '" data-a="metodo" data-v="pix" aria-pressed="' + (m === 'pix') + '">Pix</button>' +
@@ -566,7 +599,7 @@ input{border-radius:14px;min-height:52px}
     h += '<span class="sub" style="text-align:center">Horário reservado por mais <span class="relogio" id="relogio">' + fmtRel(restante) + '</span></span></div>';
     const zap = st.b.whatsapp ? waLink(st.b.whatsapp, 'Oi! Fiz o Pix de ' + brl(sn.valor) + ' do sinal pro meu horário de ' + diaLongo(p.dia) + ' às ' + p.hora + ' (' + p.servico + '). Segue o comprovante.') : '';
     if (m === 'pix' && !pixOnline) {
-      h += st.pago ? '<div class="card ok"><b>Recebemos seu aviso!</b><span class="sub">Assim que a barbearia ver o Pix, seu horário é confirmado aqui mesmo. Pode deixar esta página aberta.</span>' + (zap ? '<a class="btn zap" href="' + esc(zap) + '" target="_blank" rel="noopener">Mandar comprovante no WhatsApp</a>' : '') + '</div>'
+      h += st.pago ? '<div class="card ok"><b>Recebemos seu aviso!</b><span class="sub">Assim que o estúdio ver o Pix, seu horário é confirmado aqui mesmo. Pode deixar esta página aberta.</span>' + (zap ? '<a class="btn zap" href="' + esc(zap) + '" target="_blank" rel="noopener">Mandar comprovante no WhatsApp</a>' : '') + '</div>'
         : '<button type="button" class="btn sec" data-a="paguei">Já fiz o Pix</button>';
     }
     h += '<button type="button" class="btn sec" data-a="desistir">' + (st.confirmaDesistir ? 'Toque de novo pra desistir' : 'Desistir da reserva') + '</button>' + infos();
@@ -621,7 +654,7 @@ input{border-radius:14px;min-height:52px}
   const fmtRel = (s) => pad(Math.floor(s / 60)) + ':' + pad(Math.floor(s % 60));
   function expirou() {
     clearInterval(poll); tirarCartao(); guardar(KEY, null); st.pend = null; st.pago = false; st.hora = null; st.ocup = {}; st.metodo = ''; st.erroPag = '';
-    st.erro = 'O prazo pra pagar o sinal acabou e o horário foi liberado. Se você já pagou, fale com a barbearia pelo WhatsApp. Ou escolha um horário de novo.';
+    st.erro = 'O prazo pra pagar o sinal acabou e o horário foi liberado. Se você já pagou, fale com o estúdio pelo WhatsApp. Ou escolha um horário de novo.';
     render(); carregarDia(st.dia); window.scrollTo(0, 0);
   }
   async function conferir() {
@@ -641,10 +674,25 @@ input{border-radius:14px;min-height:52px}
     if (e.target.id === 'f-nome') st.nome = e.target.value;
     if (e.target.id === 'f-tel') st.tel = e.target.value;
     if (e.target.id === 'f-email') st.email = e.target.value;
-    const btn = app.querySelector('[data-a="confirmar"]'); if (!btn) return;
-    const s = pacote();
-    btn.disabled = !(s && st.hora && st.nome.trim().length >= 2 && st.tel.replace(/\D/g, '').length >= 10) || st.enviando;
+    if (e.target.id === 'an-obs') st.ficha.obs = e.target.value.slice(0, 300);
+    atualizarConfirmar();
   });
+  app.addEventListener('change', (e) => {
+    const id = e.target.id || '';
+    if (id.indexOf('an-') === 0 && id !== 'an-obs' && id !== 'an-aceite') {
+      const k = id.slice(3); const i = st.ficha.itens.indexOf(k);
+      if (e.target.checked && i < 0) st.ficha.itens.push(k); if (!e.target.checked && i >= 0) st.ficha.itens.splice(i, 1);
+    }
+    if (id === 'an-aceite') st.ficha.aceite = e.target.checked;
+    if (id === 'rg-aceite') st.regrasOk = e.target.checked;
+    atualizarConfirmar();
+  });
+  function podeConfirmar() {
+    const b = st.b || {};
+    return !!(pacote() && st.hora && st.nome.trim().length >= 2 && st.tel.replace(/\D/g, '').length >= 10 &&
+      (!b.anamnese || st.ficha.aceite) && (!b.regras || st.regrasOk));
+  }
+  function atualizarConfirmar() { const btn = app.querySelector('[data-a="confirmar"]'); if (btn) btn.disabled = !podeConfirmar() || st.enviando; }
   app.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.target.id === 'f-email') { e.preventDefault(); const g = app.querySelector('[data-a="gerarPix"]'); if (g && !g.disabled) g.click(); return; }
     if (e.key === 'Enter' && e.target.tagName === 'INPUT') { const btn = app.querySelector('[data-a="confirmar"]'); if (btn && !btn.disabled) { e.preventDefault(); e.target.blur(); btn.click(); } }
@@ -689,10 +737,10 @@ input{border-radius:14px;min-height:52px}
     }
     if (a === 'confirmar') {
       st.enviando = true; render();
-      const r = await sb.rpc('agendar_publico', { p_slug: slug, p_dia: st.dia, p_hora: st.hora, p_servico: (pacote() || {}).id, p_barbeiro: st.barb, p_nome: st.nome.trim(), p_tel: st.tel.trim() });
+      const r = await sb.rpc('agendar_publico', { p_slug: slug, p_dia: st.dia, p_hora: st.hora, p_servico: (pacote() || {}).id, p_barbeiro: st.barb, p_nome: st.nome.trim(), p_tel: st.tel.trim(), p_ficha: st.b.anamnese ? { itens: st.ficha.itens, obs: st.ficha.obs.trim(), aceite: !!st.ficha.aceite } : null });
       st.enviando = false;
       if (r.error) { st.erro = r.error.message || 'Não deu pra marcar. Tente de novo.'; st.hora = null; delete st.ocup[st.dia]; render(); carregarDia(st.dia); return; }
-      try { localStorage.setItem('ag_nome', st.nome.trim()); localStorage.setItem('ag_tel', st.tel.trim()); } catch (er) { /* sem armazenamento */ }
+      try { localStorage.setItem('ag_nome', st.nome.trim()); localStorage.setItem('ag_tel', st.tel.trim()); if (st.b.anamnese) localStorage.setItem('ag_ficha', JSON.stringify({ itens: st.ficha.itens, obs: st.ficha.obs, em: hoje() })); } catch (er) { /* sem armazenamento */ }
       if (r.data.status === 'aguardando_sinal' && r.data.sinal) {
         st.pend = r.data; guardar(KEY, r.data); render(); acompanhar();
       } else { st.feito = Object.assign({}, r.data, { dur: (pacote() || {}).dur }); render(); }
@@ -704,7 +752,7 @@ input{border-radius:14px;min-height:52px}
   async function iniciar() {
     const C = window.APP_CONFIG || {};
     if (!window.supabase || !C.SUPABASE_URL || /COLE_AQUI/.test(C.SUPABASE_URL)) { msg('Página em configuração. Volte daqui a pouco.'); return; }
-    if (!slug) { msg('Link incompleto. Peça o link de agendamento pra barbearia.'); return; }
+    if (!slug) { msg('Link incompleto. Peça o link de agendamento pro estúdio.'); return; }
     let u = String(C.SUPABASE_URL || '').trim();
     const painel = u.match(/supabase\.com\/dashboard\/project\/([a-z0-9]+)/i);
     if (painel) u = 'https://' + painel[1] + '.supabase.co';
@@ -713,17 +761,17 @@ input{border-radius:14px;min-height:52px}
     st.u = u;
     sb = window.supabase.createClient(u, String(C.SUPABASE_ANON_KEY || '').trim());
     const r = await sb.rpc('barbearia_publica', { p_slug: slug });
-    if (r.error || !r.data) { msg('Barbearia não encontrada. Confira o link com a barbearia.'); return; }
+    if (r.error || !r.data) { msg('Estúdio não encontrado. Confira o link com o estúdio.'); return; }
     st.b = r.data; st.b.servicos = st.b.servicos || []; st.b.barbeiros = st.b.barbeiros || [];
     document.title = 'Agendar · ' + st.b.nome;
-    const antigas = ['#8B9BFF', '#E8B04B', '#5BD08A', '#F07C6C', '#C792EA', '#F2F2F3', '#C9A35B'];
-    const cor = !st.b.cor || antigas.indexOf(String(st.b.cor).toUpperCase()) >= 0 ? '#FFD60A' : st.b.cor;
-    const rgb = /^#?([0-9a-f]{6})$/i.exec(cor); const n = rgb ? parseInt(rgb[1], 16) : 0xFFD60A; const cr = n >> 16, cg = (n >> 8) & 255, cb = n & 255;
+    const antigas = ['#FFD60A', '#3DDC97', '#FF7A45', '#5AA9FF', '#C084FC', '#FF5C7A', '#E5E5E5'];
+    const cor = !st.b.cor || antigas.indexOf(String(st.b.cor).toUpperCase()) >= 0 ? '#C98B7B' : st.b.cor;
+    const rgb = /^#?([0-9a-f]{6})$/i.exec(cor); const n = rgb ? parseInt(rgb[1], 16) : 0xC98B7B; const cr = n >> 16, cg = (n >> 8) & 255, cb = n & 255;
     const ds = document.documentElement.style;
     ds.setProperty('--marca', cor); ds.setProperty('--marca-ink', (0.299 * cr + 0.587 * cg + 0.114 * cb) / 255 > 0.55 ? '#0A0A0A' : '#FFFFFF');
     ds.setProperty('--marca-soft', 'rgba(' + cr + ',' + cg + ',' + cb + ',.12)'); ds.setProperty('--marca-line', 'rgba(' + cr + ',' + cg + ',' + cb + ',.45)');
     document.documentElement.setAttribute('data-tema', st.b.tema === 'claro' ? 'claro' : 'escuro');
-    if (!st.b.servicos.length || !st.b.barbeiros.length) { msg('Esta barbearia ainda não abriu a agenda online.'); return; }
+    if (!st.b.servicos.length || !st.b.barbeiros.length) { msg('Este estúdio ainda não abriu a agenda online.'); return; }
     const p = ler(KEY);
     if (p && p.id && p.sinal && new Date(p.sinal.expira) > new Date()) { st.pend = p; render(); acompanhar(); conferir(); return; }
     guardar(KEY, null);

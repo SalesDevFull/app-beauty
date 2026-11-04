@@ -1,7 +1,7 @@
-// Cobra o sinal de uma reserva na conta Mercado Pago da barbearia.
+// Cobra o sinal de uma reserva na conta Mercado Pago do estúdio.
 //
 // A página de agendamento manda: { slug, id, metodo: 'pix' | 'cartao', email, cartao? }.
-// O valor SEMPRE vem do banco (nunca do navegador), e o dinheiro cai na conta da barbearia.
+// O valor SEMPRE vem do banco (nunca do navegador), e o dinheiro cai na conta do estúdio.
 // Cartão aprovado confirma o horário na hora. Pix confirma quando o Mercado Pago avisar (mp-webhook).
 //
 // Segredos: MP_CLIENT_ID e MP_CLIENT_SECRET (pra renovar a conexão quando estiver perto de vencer).
@@ -86,9 +86,9 @@ const ERRO_MP: Record<string, string> = {
   '322': 'Confira o CPF do titular.', '323': 'Confira o CPF do titular.', '324': 'Confira o CPF do titular.', '2067': 'Confira o CPF do titular.',
   '3034': 'O número não bate com a bandeira do cartão. Confira o número.',
   '4033': 'Esse número de parcelas não está disponível. Tente à vista.',
-  '2034': 'Esse e-mail não pode pagar nesta barbearia (é o mesmo da conta que recebe, ou é uma conta de teste). Use outro e-mail.',
+  '2034': 'Esse e-mail não pode pagar neste estúdio (é o mesmo da conta que recebe, ou é uma conta de teste). Use outro e-mail.',
   '2001': 'Esse pagamento já foi enviado. Aguarde uns segundos e confira.',
-  '3003': 'O formulário do cartão expirou. Recarregue a página e tente de novo.', '106': 'Esse cartão não pode pagar nesta barbearia. Use outro cartão ou o Pix.',
+  '3003': 'O formulário do cartão expirou. Recarregue a página e tente de novo.', '106': 'Esse cartão não pode pagar neste estúdio. Use outro cartão ou o Pix.',
 };
 const erroMP = (p: { cause?: { code?: string | number }[] }) => {
   const c = (p && Array.isArray(p.cause) ? p.cause : []).map((x) => String(x && x.code)).find((x) => ERRO_MP[x]);
@@ -111,9 +111,9 @@ Deno.serve(async (req: Request) => {
       return c.status === 'agendado' ? json({ ok: true, status: 'approved', confirmado: true }) : falha('Essa reserva não está mais esperando pagamento.');
     }
     if (c.expira && new Date(c.expira).getTime() <= Date.now()) return falha('O prazo da reserva acabou. Escolha o horário de novo.');
-    if (!c.conta || !c.online) return falha('Esta barbearia não está recebendo pagamento online agora.');
-    if (metodo === 'cartao' && !c.online.cartao) return falha('Esta barbearia não aceita cartão online.');
-    if (metodo === 'pix' && !c.online.pix) return falha('Esta barbearia não aceita Pix online.');
+    if (!c.conta || !c.online) return falha('Este estúdio não está recebendo pagamento online agora.');
+    if (metodo === 'cartao' && !c.online.cartao) return falha('Este estúdio não aceita cartão online.');
+    if (metodo === 'pix' && !c.online.pix) return falha('Este estúdio não aceita Pix online.');
 
     const valor = Number(c.valor);
     if (!(valor > 0)) return falha('Valor do sinal inválido.');
@@ -167,7 +167,7 @@ Deno.serve(async (req: Request) => {
     if (!r.ok) { console.error('cartao', r.status, JSON.stringify(p)); return falha(erroMP(p) || 'Não deu pra pagar com esse cartão. Confira os dados ou use o Pix.'); }
     if (p.status === 'approved') {
       const res = await rpc('mp_confirmar', { p_b: c.b, p_id: id, p_valor: Number(p.transaction_amount), p_pagamento: String(p.id), p_metodo: p.payment_method_id || 'cartao' });
-      if (res === 'devolver') return falha('O pagamento passou, mas o horário não estava mais livre. A barbearia vai devolver o valor. Fale com ela pelo WhatsApp.');
+      if (res === 'devolver') return falha('O pagamento passou, mas o horário não estava mais livre. O estúdio vai devolver o valor. Fale com ele pelo WhatsApp.');
       return json({ ok: true, status: 'approved', confirmado: true });
     }
     return falha(RECUSA[p.status_detail] || 'Pagamento recusado. Tente outro cartão ou o Pix.');

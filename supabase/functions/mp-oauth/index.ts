@@ -1,4 +1,4 @@
-// Conecta a conta Mercado Pago de cada barbearia (OAuth).
+// Conecta a conta Mercado Pago de cada estúdio (OAuth).
 //
 // 1) O painel chama esta função (POST) com o login do dono e recebe o link do Mercado Pago.
 // 2) O dono autoriza lá, e o Mercado Pago volta aqui (GET ?code=...&state=...).
@@ -57,7 +57,7 @@ Deno.serve(async (req: Request) => {
       if (!user) return json({ ok: false, erro: 'Entre de novo no app e tente outra vez.' });
       const body = await req.json().catch(() => ({}));
       const b = String(body.barbearia_id || '');
-      if (!/^[0-9a-f-]{36}$/i.test(b)) return json({ ok: false, erro: 'Barbearia inválida.' });
+      if (!/^[0-9a-f-]{36}$/i.test(b)) return json({ ok: false, erro: 'Estúdio inválido.' });
       const estado = await rpc('mp_criar_estado', { p_b: b, p_user: user });
       const link = 'https://auth.mercadopago.com/authorization?client_id=' + encodeURIComponent(CLIENT_ID) +
         '&response_type=code&platform_id=mp&state=' + encodeURIComponent(estado) +

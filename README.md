@@ -1,17 +1,49 @@
 # Fio a Fio (nome provisório)
 
-App de agenda, sinal no Pix e no cartão, caixa e clientes para designers de unhas, sobrancelhas e cílios.
+App de agenda, sinal no Pix e no cartão, caixa e clientes para estúdios de cílios, sobrancelhas e beleza.
 
-Este projeto começou como uma cópia do **Degradê** (app de barbearias, repositório `JS-Barber-APP`) e está sendo adaptado para o público de beleza.
+Este projeto começou como uma cópia do **Degradê** (app de barbearias, repositório `JS-Barber-APP`) e foi adaptado para o ramo de beleza. A adaptação mexeu no visual, nos textos e também nos recursos do dia a dia de uma lash designer ou designer de sobrancelhas.
+
+- App: https://app-beauty.pages.dev
+- Banco: Supabase `app-beauty` (região São Paulo), separado do Degradê
+
+## O que tem de próprio do ramo
+
+**Retorno e manutenção.** Cada serviço tem "volta em (dias)", por exemplo 21 dias para a manutenção de cílios. No Início aparece o card "Hora da manutenção", com as clientes cujo prazo está chegando e um botão para convidar pelo WhatsApp. Ao fechar a comanda, a profissional já pode marcar a próxima manutenção na hora.
+
+**Ficha de saúde (anamnese).** No agendamento online, a cliente responde perguntas sobre alergia (cola, látex, henna), problema nos olhos, lente de contato, gravidez, tratamento de pele e reação anterior, e declara que as informações são verdadeiras. A ficha fica salva na cliente. A agenda mostra um alerta "⚠ Ficha de saúde" antes do atendimento. A dona pode ligar ou desligar a ficha em Gestão → Estúdio.
+
+**Ficha técnica.** Na ficha da cliente ficam a técnica, a curvatura, a espessura, os tamanhos, a cola e a cor usados, para repetir o mesmo resultado na manutenção.
+
+**Regras do estúdio.** A dona escreve as regras (tolerância de atraso, remarcação, vir sem maquiagem), e a cliente precisa aceitar antes de agendar.
+
+**Cuidados pós-procedimento.** Ao fechar a comanda, um botão manda pelo WhatsApp o texto de cuidados que a dona configurou.
+
+**Descrição dos serviços.** Cada serviço pode ter uma explicação curta, que aparece na página de agendamento.
+
+**Serviços prontos.** Um estúdio novo já começa com fio a fio, volume brasileiro, volume russo, manutenção, lash lifting, design de sobrancelha, henna e brow lamination. A dona pode editar ou apagar.
+
+## Visual
+
+- Tons nude e rosé, com tema claro por padrão e tema escuro opcional
+- Títulos em Playfair Display e texto em DM Sans
+- Emblema de olho fechado com cílios, e ícones novos
+- Textos adaptados: estúdio, profissional, "a cliente", "Em atendimento"
+
+## Herdado do Degradê
+
+Agenda por profissional, sinal no Pix/cartão pelo Mercado Pago de cada estúdio, comandas e caixa, metas, vales, equipe com acesso próprio, lembretes por notificação, página pública de agendamento, termos e privacidade, e painel administrativo com planos.
 
 ## Estado
 
-- [x] Cópia do código do Degradê
-- [x] Projeto próprio no Supabase (`app-beauty`, região São Paulo, banco separado do Degradê)
-- [ ] Publicação no Cloudflare Pages
-- [ ] Mercado Pago (aplicação própria)
-- [ ] Nome, cores e ícone do Fio a Fio
-- [ ] Textos ("barbearia" → "estúdio", "barbeiro" → "profissional")
-- [ ] Recursos do ramo: lembrete de manutenção, ficha de anamnese, fotos de antes e depois
+- [x] Projeto próprio no Supabase, com banco e funções publicados
+- [x] Publicação no Cloudflare Pages
+- [x] Nome, cores, ícone e textos do ramo de beleza
+- [x] Manutenção, ficha de saúde, ficha técnica, regras e cuidados
+- [ ] Mercado Pago (aplicação própria e segredos `MP_CLIENT_ID`, `MP_CLIENT_SECRET`, `APP_URL`)
+- [ ] Planos e chave Pix no painel administrativo
+- [ ] Fotos de antes e depois na ficha da cliente
+- [ ] Serviços de unhas (alongamento, manutenção do gel, esmaltação)
+- [ ] Revisar `docs/INSTALACAO.md`, que ainda fala em barbearia
 
 O guia técnico herdado do Degradê está em `docs/INSTALACAO.md`.
