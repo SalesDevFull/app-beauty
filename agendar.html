@@ -259,6 +259,22 @@ h2{font-size:28px;font-weight:600}
 .poste{width:34px!important;height:34px!important;border-radius:50%!important;border:3px solid var(--line)!important;border-top-color:var(--marca)!important;background:transparent!important;animation:fioGira .9s linear infinite}
 .poste i{display:none!important}
 @keyframes fioGira{to{transform:rotate(360deg)}}
+/* Apresentação do estúdio (opção B) */
+.capa{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;margin:0 -16px;padding:22px 16px 4px;background:radial-gradient(circle at 50% 0,color-mix(in srgb,var(--marca) 22%,transparent) 0,transparent 68%)}
+.capa .anel{padding:4px;border-radius:50%;background:conic-gradient(from 200deg,color-mix(in srgb,var(--marca) 45%,#fff),var(--marca),color-mix(in srgb,var(--marca) 70%,#000),color-mix(in srgb,var(--marca) 45%,#fff))}
+.capa .logo-g{width:104px;height:104px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:#2B1F1E;box-shadow:0 0 0 4px var(--bg)}
+.capa .logo-g img{width:100%;height:100%;object-fit:cover;background:#fff}
+.capa .logo-g span{font-family:var(--display);font-style:italic;font-weight:500;font-size:38px;color:#F3DDD3;letter-spacing:.02em}
+.capa h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:34px;line-height:1.08;color:var(--fg);margin:4px 0 0;text-wrap:balance;text-transform:none;letter-spacing:0;background:none;-webkit-text-fill-color:currentColor}
+.capa .areas{font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:color-mix(in srgb,var(--marca) 80%,var(--fg));margin-top:-4px}
+.capa .recado{margin:0;font-style:italic;color:var(--muted);font-size:15px;line-height:1.45;max-width:330px}
+.capa .pills{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.capa .pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:7px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--fg);text-decoration:none;white-space:nowrap}
+.capa .pill svg{width:14px;height:14px}
+.capa .dot{width:8px;height:8px;border-radius:50%;background:#3E9B6A;display:inline-block}
+.capa .dot.off{background:var(--dim)}
+.capa .redes{display:flex;gap:10px;margin-top:2px}
+.capa .rede{width:48px;height:48px;border-radius:50%;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--fg)}
 </style>
 </head>
 <body>
@@ -363,6 +379,36 @@ h2{font-size:28px;font-weight:600}
     return '<header class="topo"><div class="topo-in"><div class="logo"' + (b.logo ? '' : ' aria-hidden="true"') + '>' + (b.logo ? '<img src="' + esc(b.logo) + '" alt="Logo da ' + esc(b.nome) + '">' : MASCOTE.replace('viewBox="0 0 200 220"', 'viewBox="30 8 140 150"')) + '</div>' +
       '<div style="min-width:0"><h1>' + esc(b.nome) + '</h1><span class="sub">' + esc(linha) + '</span></div></div></header>';
   }
+  // Apresentação do estúdio (passo 1): logo grande com anel na cor do estúdio, nome, áreas, recado, horário e contatos.
+  const AREAS = [['Cílios', /c[ií]lio|lash|fio a fio|volume|extens|lifting|rímel/i], ['Sobrancelhas', /sobrancelh|brow|henna|design/i], ['Unhas', /unha|manicure|pedicure|p[ée] e m[ãa]o|esmalt|alongamento|gel|fibra/i], ['Depilação', /depila|cera|buço|linha/i], ['Maquiagem', /maquiag|make/i]];
+  function areasDoEstudio(b) {
+    const nomes = (b.servicos || []).map((x) => x.nome + ' ' + (x.desc || '')).join(' | ');
+    return AREAS.filter((a) => a[1].test(nomes)).map((a) => a[0]).slice(0, 3);
+  }
+  function iniciais(nome) {
+    const ps = String(nome || '').split(/\s+/).filter((w) => w.length > 1 && !/^(studio|st[uú]dio|est[uú]dio|espa[cç]o|sal[aã]o|ateli[eê]|de|da|do|das|dos|e)$/i.test(w));
+    return ((ps[0] || nome || '?')[0] + (ps[1] ? ps[1][0] : '')).toUpperCase();
+  }
+  function bairro(end) {
+    const e = String(end || ''); if (!e) return '';
+    const p = e.split(' - '); const x = (p.length > 1 ? p[p.length - 1] : e.split(',').slice(-1)[0]).split(',')[0].trim();
+    return x.length > 26 ? x.slice(0, 25) + '…' : x;
+  }
+  function capa() {
+    const b = st.b; const e = expediente(hoje()); const aberto = e && !diaFechado(hoje());
+    const areas = areasDoEstudio(b); const bai = bairro(b.endereco);
+    let h = '<header class="capa"><div class="anel"><div class="logo-g">' + (b.logo ? '<img src="' + esc(b.logo) + '" alt="Logo da ' + esc(b.nome) + '">' : '<span aria-hidden="true">' + esc(iniciais(b.nome)) + '</span>') + '</div></div>' +
+      '<h1>' + esc(b.nome) + '</h1>' + (areas.length ? '<div class="areas">' + esc(areas.join(' · ')) + '</div>' : '') +
+      (b.mensagem ? '<p class="recado">“' + esc(b.mensagem) + '”</p>' : '') +
+      '<div class="pills"><span class="pill"><i class="dot' + (aberto ? '' : ' off') + '"></i>' + (aberto ? 'Aberto hoje · ' + esc(e.abre) + ' às ' + esc(e.fecha) : 'Fechado hoje') + '</span>' +
+      (bai ? '<a class="pill" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.endereco) + '" target="_blank" rel="noopener">' + ICON.pin + esc(bai) + '</a>' : '') + '</div>';
+    const redes = [];
+    if (b.instagram) redes.push('<a class="rede" href="https://instagram.com/' + encodeURIComponent(b.instagram) + '" target="_blank" rel="noopener" aria-label="Instagram">' + ICON.insta + '</a>');
+    if (b.whatsapp) { const w = waLink(b.whatsapp, 'Oi! Vim pela página de agendamento.'); if (w) redes.push('<a class="rede" href="' + esc(w) + '" target="_blank" rel="noopener" aria-label="WhatsApp">' + ICON.zap + '</a>'); }
+    if (b.endereco) redes.push('<a class="rede" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(b.endereco) + '" target="_blank" rel="noopener" aria-label="Como chegar">' + ICON.pin + '</a>');
+    if (redes.length) h += '<div class="redes">' + redes.join('') + '</div>';
+    return h + '</header>';
+  }
   function horarioHoje() { const e = expediente(hoje()); return e && !diaFechado(hoje()) ? 'Hoje: ' + e.abre + ' às ' + e.fecha : 'Hoje: fechado · agende pros próximos dias'; }
   function infos() {
     const b = st.b; let h = '';
@@ -424,7 +470,7 @@ h2{font-size:28px;font-weight:600}
     animar('passo' + P);
     const ok = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--marca-ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
     const voltar = '<button type="button" class="btn sec voltar" data-a="ir" data-v="' + (P - 1) + '" aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>';
-    let h = topo() + '<div class="passos" aria-hidden="true">' + Array.from({ length: total }, (_, k) => '<i class="' + (k < P ? 'on' : '') + '"></i>').join('') + '</div>';
+    let h = (P === 1 ? capa() : topo()) + '<div class="passos" aria-hidden="true">' + Array.from({ length: total }, (_, k) => '<i class="' + (k < P ? 'on' : '') + '"></i>').join('') + '</div>';
     const cab = (t, dir) => '<div class="passo-lbl"><span class="lbl">Passo ' + P + ' de ' + total + '</span><span class="tiny">' + (dir || '') + '</span></div><h2>' + t + '</h2>';
     const sinalV = s && b.sinal ? Math.round(Number(s.preco) * Number(b.sinal.pct)) / 100 : 0;
     let acao = '';
@@ -433,7 +479,6 @@ h2{font-size:28px;font-weight:600}
         const on = st.servs.indexOf(x.id) >= 0;
         return '<button type="button" class="op' + (on ? ' on' : '') + '" role="checkbox" data-a="serv" data-v="' + esc(x.id) + '" aria-checked="' + on + '"><div style="flex:1;min-width:0"><b>' + esc(x.nome) + '</b><span><span class="preco">' + brl(x.preco) + '</span> · ' + esc(x.dur) + ' min</span>' + (x.desc ? '<small class="desc">' + esc(x.desc) + '</small>' : '') + '</div><span class="marca-ok quad">' + (on ? ok : '') + '</span></button>';
       }).join('') + '</div>';
-      if (b.mensagem) h += '<div class="card" style="padding:12px 14px;gap:2px"><b style="font-size:15px">' + esc(b.mensagem) + '</b>' + ((b.formas || []).length ? '<span class="tiny">Aceita ' + esc(b.formas.join(', ').replace(/, ([^,]*)$/, ' e $1')) + '.</span>' : '') + '</div>';
       acao = (s ? '<div class="resumo"><span>' + (s.qtd > 1 ? s.qtd + ' serviços' : esc(s.nome)) + ' · ' + esc(s.dur) + ' min</span><span>Total <b>' + brl(s.preco) + '</b></span></div>' : '') +
         '<button type="button" class="btn" data-a="ir" data-v="2"' + (s ? '' : ' disabled') + '>' + (s ? 'Continuar' : 'Escolha pelo menos um') + '</button>';
     } else if (P === 2) {
