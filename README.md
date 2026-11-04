@@ -7,7 +7,7 @@ Este projeto começou como uma cópia do **Degradê** (app de barbearias, reposi
 ## Estado
 
 - [x] Cópia do código do Degradê
-- [ ] Projeto próprio no Supabase (banco separado do Degradê)
+- [x] Projeto próprio no Supabase (`app-beauty`, região São Paulo, banco separado do Degradê)
 - [ ] Publicação no Cloudflare Pages
 - [ ] Mercado Pago (aplicação própria)
 - [ ] Nome, cores e ícone do Fio a Fio
