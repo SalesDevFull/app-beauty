@@ -3,15 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0A0A0A">
+<meta name="theme-color" content="#F7EFEA">
 <meta name="robots" content="noindex, nofollow">
-<title>Degradê · Administração</title>
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=5">
-<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=5">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=5">
+<title>Fio a Fio · Administração</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=6">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png?v=6">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=6">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap">
 <style>
 /* Painel do administrador: mesma pele de couro e madeira do app, em uma coluna larga (até 900px) com cartões por barbearia. */
 :root{
@@ -122,13 +122,19 @@ input,select,textarea{background:var(--surface)!important;border-color:var(--lin
 label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
 #toast{background:var(--fg)!important;color:#0A0A0A!important}
 @media (prefers-reduced-motion:reduce){*{animation:none!important}}
+:root{--bg:#F7EFEA;--surface:#FFFCFA;--surface2:#F3E7E1;--line:#EADBD3;--line2:#DECBC2;--fg:#3A2A2A;--fg2:#4A3833;--muted:#7A625B;--dim:#A08E88;
+  --accent:#C98B7B;--accent-ink:#0A0A0A;--accent-soft:rgba(201,139,123,.14);--accent-line:rgba(201,139,123,.45);color-scheme:light;
+  --font:'DM Sans',system-ui,sans-serif;--display:'Playfair Display',Georgia,serif;--wood-1:#FFFCFA;--wood-2:#FFFCFA;--wood-3:#F7EFEA}
+.top h1,h1,.h2{font-family:var(--display)!important;text-transform:none!important;letter-spacing:0!important}
+.selo{background:#F4E3DC!important}
+.btn,.chip,.lbl,.pill,.num{font-family:var(--font)}
 </style>
 </head>
 <body>
 <header class="top">
   <div class="top-in">
-    <div class="selo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="30 8 140 150" class="mascote"><g class="m-corpo"><path d="M28 220 C30 178 58 160 100 160 C142 160 170 178 172 220 Z" fill="#EFE3CF"/><path d="M62 220 L70 170 C80 166 90 164 100 164 C110 164 120 166 130 170 L138 220 Z" fill="#6B4227"/><path d="M100 166 L84 220 M100 166 L116 220" stroke="#5A361F" stroke-width="2" fill="none"/><circle cx="100" cy="196" r="2.6" fill="#C9A35B"/><circle cx="100" cy="210" r="2.6" fill="#C9A35B"/><path d="M78 160 L100 176 L90 186 Z" fill="#FFFFFF"/><path d="M122 160 L100 176 L110 186 Z" fill="#FFFFFF"/><g class="m-gravata"><path d="M100 172 L80 162 C76 161 74 164 75 168 L77 180 C78 184 81 185 84 183 Z" fill="#8E2F35"/><path d="M100 172 L120 162 C124 161 126 164 125 168 L123 180 C122 184 119 185 116 183 Z" fill="#8E2F35"/><rect x="94" y="166" width="12" height="12" rx="4" fill="#A63B42"/></g><g transform="translate(140 186) rotate(-20)"><rect x="-12" y="4" width="24" height="16" rx="3" fill="#E2D3BA"/><path d="M-4 4 L2 -14 M4 4 L-2 -14" stroke="#9AA3AD" stroke-width="2.4" stroke-linecap="round"/></g></g><rect x="86" y="138" width="28" height="26" rx="10" fill="#D99E76"/><ellipse cx="50" cy="104" rx="11" ry="15" fill="#E7AE86"/><ellipse cx="150" cy="104" rx="11" ry="15" fill="#E7AE86"/><ellipse cx="51" cy="105" rx="5" ry="8" fill="#D2926B"/><ellipse cx="149" cy="105" rx="5" ry="8" fill="#D2926B"/><path d="M54 92 C54 58 74 40 100 40 C126 40 146 58 146 92 L146 112 C146 140 126 156 100 156 C74 156 54 140 54 112 Z" fill="#EDB990"/><path d="M52 92 C42 60 52 30 78 18 C98 8 126 8 142 22 C156 34 156 58 148 92 C144 74 134 64 120 62 C128 56 126 46 116 44 C104 42 94 52 84 58 C70 64 58 74 52 92 Z" fill="#3A2416"/><path d="M60 52 C66 30 88 16 112 16 C96 22 80 34 72 50 Z" fill="#5B3A24"/><path d="M118 18 C138 20 150 34 150 54 C144 40 132 30 118 26 Z" fill="#5B3A24"/><path d="M84 30 C96 24 112 24 124 30" stroke="#6E4A30" stroke-width="3" stroke-linecap="round" fill="none"/><path class="m-sob" d="M68 82 C74 74 86 74 92 80" stroke="#3A2416" stroke-width="6" stroke-linecap="round" fill="none"/><path class="m-sob" d="M108 80 C114 74 126 74 132 82" stroke="#3A2416" stroke-width="6" stroke-linecap="round" fill="none"/><g class="m-olhos"><ellipse cx="80" cy="96" rx="7" ry="8.5" fill="#2A1B12"/><ellipse cx="120" cy="96" rx="7" ry="8.5" fill="#2A1B12"/><circle cx="82.5" cy="93" r="2.4" fill="#FFFFFF"/><circle cx="122.5" cy="93" r="2.4" fill="#FFFFFF"/></g><ellipse cx="68" cy="116" rx="9" ry="5.5" fill="#E58E7A" opacity=".45"/><ellipse cx="132" cy="116" rx="9" ry="5.5" fill="#E58E7A" opacity=".45"/><path d="M100 98 C96 108 92 114 96 118 C99 120 104 120 106 117" stroke="#C98763" stroke-width="3" fill="#E3A781" stroke-linecap="round"/><path class="m-boca" d="M88 134 C94 142 106 142 112 134 C106 137 94 137 88 134 Z" fill="#8E2F35"/><g class="m-bigode"><path d="M100 120 C92 116 80 116 72 124 C66 130 58 132 52 128 C46 124 46 116 52 114 C48 120 54 124 58 120 C62 116 66 112 74 112 C84 112 94 114 100 118 C106 114 116 112 126 112 C134 112 138 116 142 120 C146 124 152 120 148 114 C154 116 154 124 148 128 C142 132 134 130 128 124 C120 116 108 116 100 120 Z" fill="#3A2416"/><path d="M100 119 C92 115 82 116 76 120 C86 116 94 117 100 121 Z" fill="#5B3A24"/></g></svg></div>
-    <div class="grow"><small>Degradê · Administração</small><h1 id="titulo">Barbearias</h1></div>
+    <div class="selo" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="14 26 172 172" class="mascote"><circle cx="100" cy="112" r="92" fill="#F4E3DC"/><circle cx="100" cy="112" r="92" fill="none" stroke="#C98B7B" stroke-width="3" stroke-dasharray="2 7" stroke-linecap="round"/><path d="M50 74 Q100 46 152 70" fill="none" stroke="#8C6A5D" stroke-width="8" stroke-linecap="round"/><path d="M44 108 Q100 150 156 108" fill="none" stroke="#3A2A2A" stroke-width="6" stroke-linecap="round"/><g fill="none" stroke="#3A2A2A" stroke-width="3.6" stroke-linecap="round"><path d="M57.4 116.9 Q51.6 124.7 44.9 129.9"/><path d="M71.6 123.6 Q66.7 134.8 61.1 142.3"/><path d="M85.8 127.7 Q83.2 139.4 80.4 147.3"/><path d="M100.0 129.0 Q100.0 141.0 100.0 149.0"/><path d="M114.2 127.7 Q116.8 139.4 119.6 147.3"/><path d="M128.4 123.6 Q133.3 134.8 138.9 142.3"/><path d="M142.6 116.9 Q148.4 124.7 155.1 129.9"/></g><path d="M160 40 C162 50 165 53 175 55 C165 57 162 60 160 70 C158 60 155 57 145 55 C155 53 158 50 160 40 Z" fill="#C98B7B"/><path d="M38 150 C39 155 41 157 46 158 C41 159 39 161 38 166 C37 161 35 159 30 158 C35 157 37 155 38 150 Z" fill="#E3B5A4"/></svg></div>
+    <div class="grow"><small>Fio a Fio · Administração</small><h1 id="titulo">Estúdios</h1></div>
   </div>
 </header>
 <main id="view"><p class="sub">Carregando…</p></main>
@@ -149,7 +155,7 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
   const br = (s) => { if (!s) return '—'; const d = parseD(s); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear(); };
   const quando = (ts) => { if (!ts) return 'nunca'; const n = dias(String(ts).slice(0, 10), hoje()); return n <= 0 ? 'hoje' : n === 1 ? 'ontem' : 'há ' + n + ' dias'; };
   const num = (v) => { const n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; };
-  const APP_NOME = 'Degradê';
+  const APP_NOME = 'Fio a Fio';
   const tol = () => (S.sis && S.sis.tolerancia != null ? Number(S.sis.tolerancia) : 5);
   const novoId = () => 'p' + Math.random().toString(36).slice(2, 8);
 
@@ -191,11 +197,11 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
     return '<section class="card"><p class="h2">Configurações do sistema</p>' +
       '<div class="form"><div class="field"><label for="cf-teste">Teste grátis (dias)</label><input id="cf-teste" inputmode="numeric" value="' + esc(sis.teste_dias != null ? sis.teste_dias : 10) + '"></div>' +
       '<div class="field"><label for="cf-tol">Tolerância após vencer (dias)</label><input id="cf-tol" inputmode="numeric" value="' + esc(tol()) + '"></div>' +
-      '<span class="tiny span">O teste grátis vale pras barbearias que se cadastrarem daqui pra frente. A tolerância vale pra todas na hora.</span></div>' +
+      '<span class="tiny span">O teste grátis vale pros estúdios que se cadastrarem daqui pra frente. A tolerância vale pra todas na hora.</span></div>' +
       '<p class="h2" style="font-size:18px">Planos</p><div class="form"><div class="span stack" id="cf-planos">' +
       (ps.length ? ps.map((p, i) => '<div class="plano-linha"><input data-plano="' + i + '" data-campo="nome" placeholder="Nome do plano" value="' + esc(p.nome) + '" aria-label="Nome do plano"><input data-plano="' + i + '" data-campo="preco" inputmode="decimal" placeholder="Preço" value="' + esc(p.preco != null ? String(p.preco).replace('.', ',') : '') + '" aria-label="Preço por mês"><button type="button" class="btn" data-a="planoTirar" data-v="' + i + '" aria-label="Remover plano">✕</button></div>').join('')
         : '<span class="tiny">Nenhum plano. Crie, por exemplo, "Básico" e "Completo".</span>') +
-      '</div><button type="button" class="btn span" data-a="planoNovo">+ Adicionar plano</button><span class="tiny span">O primeiro plano da lista é o padrão das barbearias novas.</span></div>' +
+      '</div><button type="button" class="btn span" data-a="planoNovo">+ Adicionar plano</button><span class="tiny span">O primeiro plano da lista é o padrão dos estúdios novos.</span></div>' +
       '<p class="h2" style="font-size:18px">Seu Pix (pra cobrar as mensalidades)</p><div class="form">' +
       '<div class="field"><label for="cf-tipo">Tipo de chave</label><select id="cf-tipo">' + [['celular', 'Celular'], ['cpf', 'CPF'], ['cnpj', 'CNPJ'], ['email', 'E-mail'], ['aleatoria', 'Chave aleatória']].map((k) => '<option value="' + k[0] + '"' + (tipo === k[0] ? ' selected' : '') + '>' + k[1] + '</option>').join('') + '</select></div>' +
       '<div class="field"><label for="cf-chave">Chave Pix</label><input id="cf-chave" autocomplete="off" value="' + esc(px.chaveDigitada || px.chave || '') + '"></div>' +
@@ -226,7 +232,7 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
     const recebidoMes = S.pags.filter((p) => String(p.pago_em).slice(0, 7) === mes).reduce((a, p) => a + Number(p.valor || 0), 0);
     const cnt = (k) => sit.filter((x) => x.s.k === k).length;
     let h = '<div class="kpis">' +
-      '<div class="kpi"><span>Barbearias</span><b>' + L.length + '</b></div>' +
+      '<div class="kpi"><span>Estúdios</span><b>' + L.length + '</b></div>' +
       '<div class="kpi"><span>Liberadas</span><b>' + liberadas.length + '</b></div>' +
       '<div class="kpi"><span>Bloqueadas</span><b>' + cnt('bloq') + '</b></div>' +
       '<div class="kpi"><span>Em teste grátis</span><b>' + cnt('teste') + '</b></div>' +
@@ -238,7 +244,7 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
     h += '<div class="field"><label for="busca" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Buscar</label><input id="busca" type="search" placeholder="Buscar por nome, link ou e-mail do dono" value="' + esc(S.busca) + '"></div>';
     const q = S.busca.toLowerCase().trim();
     const vis = sit.filter((x) => (S.filtro === 'todas' || x.s.k === S.filtro) && (!q || (x.b.nome + ' ' + x.b.slug + ' ' + (x.b.dono_email || '')).toLowerCase().indexOf(q) >= 0));
-    if (!vis.length) h += '<div class="empty">' + (L.length ? 'Nenhuma barbearia nesse filtro.' : 'Nenhuma barbearia se cadastrou ainda. Quando alguém criar conta no app, aparece aqui.') + '</div>';
+    if (!vis.length) h += '<div class="empty">' + (L.length ? 'Nenhum estúdio nesse filtro.' : 'Nenhum estúdio se cadastrou ainda. Quando alguém criar conta no app, aparece aqui.') + '</div>';
     const base = location.origin + location.pathname.replace(/[^/]*$/, '');
     vis.forEach((x) => {
       const b = x.b, s = x.s, aberto = S.aberto === b.id;
@@ -262,17 +268,17 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
           '<div class="field"><label for="ed-venc">Vencimento</label><input id="ed-venc" type="date" value="' + esc(b.vencimento || '') + '"></div>' +
           '<div class="field"><label for="ed-ativa">Acesso</label><select id="ed-ativa"><option value="1"' + (b.ativa ? ' selected' : '') + '>Ativa</option><option value="0"' + (!b.ativa ? ' selected' : '') + '>Desativada</option></select></div>' +
           '<div class="field span"><label for="ed-obs">Anotação interna (só você vê)</label><textarea id="ed-obs">' + esc(b.obs_admin || '') + '</textarea></div>' +
-          '<span class="tiny span">Deixe o vencimento em branco pra barbearia nunca ser bloqueada automaticamente (ex.: parceiro ou cortesia).</span>' +
+          '<span class="tiny span">Deixe o vencimento em branco pro estúdio nunca ser bloqueado automaticamente (ex.: parceiro ou cortesia).</span>' +
           '<button type="button" class="btn pri span" data-a="salvar" data-id="' + b.id + '">Salvar</button>' +
-          '<div class="span perigo"><b class="c-bad">Excluir barbearia</b><span class="tiny">Apaga a barbearia e tudo dela: agenda, caixa, clientes, pagamentos e a conexão do Mercado Pago. As contas de login da equipe (' + esc(b.dono_email || 'sem dono') + (b.membros > 1 ? ' e mais ' + (b.membros - 1) : '') + ') também são apagadas, e o e-mail fica livre pra se cadastrar de novo. Não dá pra desfazer.</span>' +
+          '<div class="span perigo"><b class="c-bad">Excluir estúdio</b><span class="tiny">Apaga o estúdio e tudo dele: agenda, caixa, clientes, pagamentos e a conexão do Mercado Pago. As contas de login da equipe (' + esc(b.dono_email || 'sem dono') + (b.membros > 1 ? ' e mais ' + (b.membros - 1) : '') + ') também são apagadas, e o e-mail fica livre pra se cadastrar de novo. Não dá pra desfazer.</span>' +
           '<div class="field"><label for="ex-nome">Pra confirmar, digite o nome: <b>' + esc(b.nome) + '</b></label><input id="ex-nome" autocomplete="off"></div>' +
           '<button type="button" class="btn bad" data-a="excluir" data-id="' + b.id + '">Excluir pra sempre</button></div></div>';
       }
       if (aberto && S.modo === 'cobrar') {
         const cb = cobranca(b);
-        if (!cb) h += '<div class="form"><span class="tiny span">' + (!(S.sis && S.sis.pix && S.sis.pix.chave) ? 'Cadastre o seu Pix em Configurações do sistema (lá em cima) pra gerar a cobrança.' : 'Defina a mensalidade desta barbearia em Editar pra gerar a cobrança.') + '</span></div>';
+        if (!cb) h += '<div class="form"><span class="tiny span">' + (!(S.sis && S.sis.pix && S.sis.pix.chave) ? 'Cadastre o seu Pix em Configurações do sistema (lá em cima) pra gerar a cobrança.' : 'Defina a mensalidade deste estúdio em Editar pra gerar a cobrança.') + '</span></div>';
         else h += '<div class="form"><div class="span copia" id="cb-msg">' + esc(cb.msg) + '</div>' +
-          '<div class="span row wrap">' + (cb.link ? '<a class="btn pri" href="' + esc(cb.link) + '" target="_blank" rel="noopener">Enviar no WhatsApp</a>' : '<span class="tiny">A barbearia não cadastrou WhatsApp. Copie a mensagem e mande por onde preferir.</span>') +
+          '<div class="span row wrap">' + (cb.link ? '<a class="btn pri" href="' + esc(cb.link) + '" target="_blank" rel="noopener">Enviar no WhatsApp</a>' : '<span class="tiny">O estúdio não cadastrou WhatsApp. Copie a mensagem e mande por onde preferir.</span>') +
           '<button type="button" class="btn" data-a="copiar" data-v="msg" data-id="' + b.id + '">Copiar mensagem</button><button type="button" class="btn" data-a="copiar" data-v="pix" data-id="' + b.id + '">Copiar só o Pix</button></div>' +
           '<span class="tiny span">Quando o Pix cair, use "Registrar pagamento" pra liberar o próximo mês.</span></div>';
       }
@@ -390,7 +396,7 @@ label{text-transform:uppercase;letter-spacing:.08em;font-size:12px!important}
     }
     if (a === 'excluir') {
       const b = S.lista.find((x) => x.id === id); const nome = document.getElementById('ex-nome').value.trim();
-      if (!b || nome.toLowerCase() !== String(b.nome).trim().toLowerCase()) { toast('Digite o nome exato da barbearia pra confirmar.', true); return; }
+      if (!b || nome.toLowerCase() !== String(b.nome).trim().toLowerCase()) { toast('Digite o nome exato do estúdio pra confirmar.', true); return; }
       el.disabled = true; el.textContent = 'Excluindo…';
       await apagarFotosDaBarbearia(id);
       const r = await S.sb.rpc('admin_excluir_barbearia', { p_id: id, p_nome: nome });

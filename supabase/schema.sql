@@ -1,5 +1,5 @@
 -- =====================================================================
--- Barbearia App — banco de dados (Supabase / Postgres)
+-- Fio a Fio — banco de dados (Supabase / Postgres)
 -- Cole este arquivo inteiro no SQL Editor do Supabase e clique em RUN.
 -- Pode rodar de novo sem problema: ele não apaga dados existentes.
 -- =====================================================================
@@ -218,7 +218,7 @@ language plpgsql security definer set search_path = public as $$
 begin
   perform pg_advisory_xact_lock(hashtext('fotos' || new.barbearia_id::text || new.barbeiro_id));
   if (select count(*) from fotos where barbearia_id = new.barbearia_id and barbeiro_id = new.barbeiro_id) >= 30 then
-    raise exception 'Limite de 30 fotos por barbeiro. Apague alguma antes de pôr outra.';
+    raise exception 'Limite de 30 fotos por profissional. Apague alguma antes de pôr outra.';
   end if;
   return new;
 end $$;
@@ -286,7 +286,7 @@ begin
     or new.mensalidade is distinct from old.mensalidade
     or new.obs_admin is distinct from old.obs_admin
     or new.slug is distinct from old.slug) then
-    raise exception 'Só o administrador do sistema pode mudar a assinatura de uma barbearia.';
+    raise exception 'Só o administrador do sistema pode mudar a assinatura de um estúdio.';
   end if;
   return new;
 end $$;
@@ -303,7 +303,7 @@ returns uuid language plpgsql security definer set search_path = public as $$
 declare v_id uuid;
 begin
   if auth.uid() is null then raise exception 'Faça login primeiro.'; end if;
-  if coalesce(trim(p_nome), '') = '' then raise exception 'Informe o nome da barbearia.'; end if;
+  if coalesce(trim(p_nome), '') = '' then raise exception 'Informe o nome do estúdio.'; end if;
   if p_slug !~ '^[a-z0-9][a-z0-9-]{2,59}$' then raise exception 'O link precisa ter de 3 a 60 letras minúsculas, números ou hífens.'; end if;
   if exists (select 1 from barbearias where slug = p_slug) then raise exception 'Esse link já está em uso. Escolha outro.'; end if;
   insert into barbearias (slug, nome, config, vencimento, plano, mensalidade)
@@ -453,7 +453,7 @@ create or replace function public.barbearia_publica(p_slug text)
 returns json language sql stable security definer set search_path = public as $$
   select json_build_object(
     'nome', b.nome,
-    'cor', coalesce(b.config ->> 'cor', '#C9A35B'),
+    'cor', coalesce(b.config ->> 'cor', '#C98B7B'),
     'abre', coalesce(b.config ->> 'abre', '09:00'),
     'fecha', coalesce(b.config ->> 'fecha', '19:00'),
     'intervalo', coalesce((b.config ->> 'intervalo')::int, 30),
@@ -463,13 +463,15 @@ returns json language sql stable security definer set search_path = public as $$
     'endereco', b.config ->> 'endereco',
     'instagram', b.config ->> 'instagram',
     'whatsapp', b.config ->> 'whatsapp',
+    'regras', nullif(b.config ->> 'regras', ''),
+    'anamnese', coalesce(b.config -> 'anamnese' ->> 'ativa', 'false') = 'true',
     'formas', coalesce(b.config -> 'formas', '["Pix","Cartão","Dinheiro"]'::jsonb),
     'sinal', case when sinal_ligado(b.id, b.config) then json_build_object(
                 'pct', coalesce((b.config -> 'sinal' ->> 'pct')::numeric, 50),
                 'prazo', coalesce((b.config -> 'sinal' ->> 'prazo')::int, 30),
                 'pixManual', coalesce(b.config -> 'pix' ->> 'chave', '') <> '',
                 'online', mp_online(b.id, b.config)) end,
-    'servicos', coalesce((select json_agg(json_build_object('id', s ->> 'id', 'nome', s ->> 'nome', 'preco', (s ->> 'preco')::numeric, 'dur', (s ->> 'dur')::int))
+    'servicos', coalesce((select json_agg(json_build_object('id', s ->> 'id', 'nome', s ->> 'nome', 'preco', (s ->> 'preco')::numeric, 'dur', (s ->> 'dur')::int, 'desc', nullif(s ->> 'desc', '')))
                           from jsonb_array_elements(coalesce(b.config -> 'servicos', '[]'::jsonb)) s), '[]'::json),
     'barbeiros', coalesce((select json_agg(json_build_object('id', x ->> 'id', 'nome', x ->> 'nome', 'folgas', coalesce(x -> 'folgas', '[]'::jsonb),
                             'fotos', coalesce((select json_agg(json_build_object('c', f.caminho, 'l', f.legenda) order by f.criado_em desc)
@@ -505,8 +507,10 @@ $$;
 
 -- O cliente marca o horário. Confere tudo no servidor pra evitar horário duplicado.
 -- Com sinal ligado, o horário fica reservado até o prazo e o dono confirma quando o Pix cair.
+-- p_ficha: ficha de saúde respondida pela cliente (itens marcados, observação e autorização).
+drop function if exists public.agendar_publico(text, text, text, text, text, text, text);
 create or replace function public.agendar_publico(
-  p_slug text, p_dia text, p_hora text, p_servico text, p_barbeiro text, p_nome text, p_tel text)
+  p_slug text, p_dia text, p_hora text, p_servico text, p_barbeiro text, p_nome text, p_tel text, p_ficha jsonb default null)
 returns json language plpgsql security definer set search_path = public as $$
 declare
   b barbearias%rowtype;
@@ -515,7 +519,7 @@ declare
   v_sinal boolean; v_valor numeric; v_expira timestamptz;
 begin
   select * into b from barbearias where slug = p_slug and barbearia_liberada(ativa, vencimento);
-  if not found then raise exception 'Barbearia não encontrada.'; end if;
+  if not found then raise exception 'Estúdio não encontrado.'; end if;
 
   if p_hora !~ '^[0-2][0-9]:[0-5][0-9]$' then raise exception 'Horário inválido.'; end if;
   begin v_dia := p_dia::date; exception when others then raise exception 'Data inválida.'; end;
@@ -542,7 +546,7 @@ begin
   end if;
   v_dur := coalesce((v_serv ->> 'dur')::int, 30);
   if expediente(b.config, v_dia) is null or jsonb_typeof(expediente(b.config, v_dia)) <> 'object' then
-    raise exception 'A barbearia não abre nesse dia.';
+    raise exception 'O estúdio não abre nesse dia.';
   end if;
   if v_ini < minutos(expediente(b.config, v_dia) ->> 'abre') or v_ini + v_dur > minutos(expediente(b.config, v_dia) ->> 'fecha') then
     raise exception 'Fora do horário de funcionamento.';
@@ -582,6 +586,17 @@ begin
   insert into registros (barbearia_id, colecao, id, dados)
     values (b.id, 'clientes', v_cli, jsonb_build_object('nome', trim(p_nome), 'telefone', p_tel, 'criadoEm', now(), 'visitas', 0, 'ultimaVisita', null, 'ficha', ''))
     on conflict (barbearia_id, colecao, id) do update set dados = registros.dados || jsonb_build_object('nome', trim(p_nome));
+
+  -- Ficha de saúde respondida no agendamento (só as perguntas conhecidas; observação curta).
+  if p_ficha is not null and jsonb_typeof(p_ficha) = 'object' and char_length(p_ficha::text) < 3000 then
+    update registros set dados = dados || jsonb_build_object('anamnese', jsonb_build_object(
+        'data', v_hoje,
+        'itens', coalesce((select jsonb_agg(x) from jsonb_array_elements_text(case when jsonb_typeof(p_ficha -> 'itens') = 'array' then p_ficha -> 'itens' else '[]'::jsonb end) x
+                           where x in ('alergia', 'olhos', 'lente', 'gestante', 'pele', 'reacao')), '[]'::jsonb),
+        'obs', left(trim(coalesce(p_ficha ->> 'obs', '')), 300),
+        'aceite', coalesce(p_ficha ->> 'aceite', 'false') = 'true'))
+    where barbearia_id = b.id and colecao = 'clientes' and id = v_cli;
+  end if;
 
   v_id := 'w' || replace(gen_random_uuid()::text, '-', '');
   if v_sinal then
@@ -830,7 +845,7 @@ begin
   if coalesce(p_meses, 0) < 1 or p_meses > 24 then raise exception 'Informe de 1 a 24 meses.'; end if;
   if coalesce(p_valor, -1) < 0 then raise exception 'Informe o valor recebido.'; end if;
   select vencimento into v_venc from barbearias where id = p_id;
-  if not found then raise exception 'Barbearia não encontrada.'; end if;
+  if not found then raise exception 'Estúdio não encontrado.'; end if;
   v_novo := (greatest(coalesce(v_venc, v_hoje), v_hoje) + make_interval(months => p_meses))::date;
   update barbearias set vencimento = v_novo, ativa = true where id = p_id;
   insert into pagamentos (barbearia_id, valor, meses, vence_ate, obs) values (p_id, p_valor, p_meses, v_novo, nullif(trim(coalesce(p_obs, '')), ''));
@@ -847,7 +862,7 @@ begin
     mensalidade = p_mensalidade, obs_admin = nullif(trim(coalesce(p_obs, '')), ''),
     plano = coalesce(p_plano, plano)
   where id = p_id;
-  if not found then raise exception 'Barbearia não encontrada.'; end if;
+  if not found then raise exception 'Estúdio não encontrado.'; end if;
 end $$;
 
 -- Apaga um pagamento lançado errado (não mexe no vencimento; ajuste à mão se precisar).
@@ -868,9 +883,9 @@ declare v_nome text; v_users uuid[]; v_emails text[];
 begin
   perform exigir_admin();
   select nome into v_nome from barbearias where id = p_id;
-  if v_nome is null then raise exception 'Barbearia não encontrada.'; end if;
+  if v_nome is null then raise exception 'Estúdio não encontrado.'; end if;
   if lower(trim(coalesce(p_nome, ''))) <> lower(trim(v_nome)) then
-    raise exception 'Digite o nome exato da barbearia pra confirmar.';
+    raise exception 'Digite o nome exato do estúdio pra confirmar.';
   end if;
   select coalesce(array_agg(m.user_id), '{}') into v_users from membros m
   where m.barbearia_id = p_id
@@ -945,7 +960,7 @@ $$;
 create or replace function public.push_inscrever(p_b uuid, p_endpoint text, p_p256dh text, p_auth text)
 returns boolean language plpgsql security definer set search_path = public as $$
 begin
-  if not eh_membro(p_b) then raise exception 'Sem acesso a essa barbearia.'; end if;
+  if not eh_membro(p_b) then raise exception 'Sem acesso a esse estúdio.'; end if;
   if p_endpoint !~ '^https://' or char_length(p_endpoint) > 1000 or coalesce(p_p256dh, '') = '' or coalesce(p_auth, '') = '' then
     raise exception 'Inscrição inválida.';
   end if;
@@ -1117,7 +1132,7 @@ grant execute on function public.criar_barbearia(text, text, jsonb) to authentic
 grant execute on function public.entrar_por_convite() to authenticated;
 grant execute on function public.barbearia_publica(text) to anon, authenticated;
 grant execute on function public.horarios_ocupados(text, text) to anon, authenticated;
-grant execute on function public.agendar_publico(text, text, text, text, text, text, text) to anon, authenticated;
+grant execute on function public.agendar_publico(text, text, text, text, text, text, text, jsonb) to anon, authenticated;
 grant execute on function public.status_agendamento(text, text) to anon, authenticated;
 revoke all on function public.equipe_acessos(uuid) from public, anon;
 revoke all on function public.equipe_ajustar(uuid, uuid, text, text) from public, anon;
