@@ -426,7 +426,7 @@ h2{font-size:28px;font-weight:600}
     const voltar = '<button type="button" class="btn sec voltar" data-a="ir" data-v="' + (P - 1) + '" aria-label="Voltar"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>';
     let h = topo() + '<div class="passos" aria-hidden="true">' + Array.from({ length: total }, (_, k) => '<i class="' + (k < P ? 'on' : '') + '"></i>').join('') + '</div>';
     const cab = (t, dir) => '<div class="passo-lbl"><span class="lbl">Passo ' + P + ' de ' + total + '</span><span class="tiny">' + (dir || '') + '</span></div><h2>' + t + '</h2>';
-    const sinalV = s && b.sinal ? Math.round(Number(s.preco) * Number(b.sinal.pct)) / 100 : 0;
+    const sinalV = s && b.sinal ? (b.sinal.tipo === 'fixo' ? Math.min(Math.round(Number(b.sinal.valor) * 100) / 100, Number(s.preco)) : Math.round(Number(s.preco) * Number(b.sinal.pct)) / 100) : 0;
     let acao = '';
     if (P === 1) {
       h += cab('Escolha os serviços', 'pode marcar mais de um') + '<div class="lista" role="group" aria-label="Serviços">' + b.servicos.map((x) => {
@@ -471,7 +471,7 @@ h2{font-size:28px;font-weight:600}
       }
       if (st.erro) h += '<p class="erro" role="alert">' + esc(st.erro) + '</p>';
       const pronto = podeConfirmar();
-      const tudo = b.sinal && Number(b.sinal.pct) >= 100;
+      const tudo = b.sinal && sinalV >= Number(s.preco);
       const rotulo = st.enviando ? 'Reservando…' : (b.sinal ? (tudo ? 'Pagar e agendar' : 'Pagar sinal e agendar') : 'Confirmar agendamento');
       acao = (st.hora ? '<div class="card" style="padding:12px 14px;gap:2px"><div style="display:flex;justify-content:space-between;gap:10px"><b style="font-size:16px">' + esc(diaLongo(st.dia).split(',')[0]) + ' · ' + esc(st.hora) + '</b><b style="color:var(--marca)">' + brl(s.preco) + '</b></div>' +
           (b.sinal ? '<span class="tiny">' + (tudo ? 'Pagamento de ' + brl(sinalV) : 'Sinal de ' + brl(sinalV)) + ' ' + comoPaga(b.sinal) + (tudo ? '' : ' · o resto no estúdio') + '. O horário fica reservado por ' + esc(b.sinal.prazo) + ' min enquanto você paga.</span>' : '<span class="tiny">Você paga no estúdio.</span>') + '</div>' : '') +

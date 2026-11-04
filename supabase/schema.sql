@@ -497,6 +497,8 @@ returns json language sql stable security definer set search_path = public as $$
     'formas', coalesce(b.config -> 'formas', '["Pix","Cartão","Dinheiro"]'::jsonb),
     'sinal', case when sinal_ligado(b.id, b.config) then json_build_object(
                 'pct', coalesce((b.config -> 'sinal' ->> 'pct')::numeric, 50),
+                'tipo', case when b.config -> 'sinal' ->> 'tipo' = 'fixo' then 'fixo' else 'pct' end,
+                'valor', coalesce((b.config -> 'sinal' ->> 'valor')::numeric, 0),
                 'prazo', coalesce((b.config -> 'sinal' ->> 'prazo')::int, 30),
                 'pixManual', coalesce(b.config -> 'pix' ->> 'chave', '') <> '',
                 'online', mp_online(b.id, b.config)) end,
@@ -629,7 +631,12 @@ begin
 
   v_id := 'w' || replace(gen_random_uuid()::text, '-', '');
   if v_sinal then
-    v_valor := round(coalesce((v_serv ->> 'preco')::numeric, 0) * coalesce((b.config -> 'sinal' ->> 'pct')::numeric, 50) / 100, 2);
+    -- Sinal em % do total ou valor fixo (nunca maior que o total dos serviços).
+    if b.config -> 'sinal' ->> 'tipo' = 'fixo' then
+      v_valor := least(round(greatest(coalesce((b.config -> 'sinal' ->> 'valor')::numeric, 0), 0), 2), coalesce((v_serv ->> 'preco')::numeric, 0));
+    else
+      v_valor := round(coalesce((v_serv ->> 'preco')::numeric, 0) * coalesce((b.config -> 'sinal' ->> 'pct')::numeric, 50) / 100, 2);
+    end if;
     v_expira := now() + make_interval(mins => greatest(5, least(240, coalesce((b.config -> 'sinal' ->> 'prazo')::int, 30))));
     if v_valor <= 0 then v_sinal := false; end if;
   end if;
