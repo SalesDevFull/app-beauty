@@ -1504,6 +1504,8 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const tipo = fv('pgTipo', px.tipo || 'celular');
       const ativo = fv('pgAtivo', sn.ativo ? '1' : '0') === '1';
       const pctS = num(fv('pgPct', sn.pct || 50)) || 50;
+      const tipoS = fv('pgSinalTipo', sn.tipo === 'fixo' ? 'fixo' : 'pct'); const valS = num(fv('pgValor', sn.valor || ''));
+      const sinalDe = (preco) => (tipoS === 'fixo' ? Math.min(valS, num(preco)) : num(preco) * pctS / 100);
       const s0 = (c.servicos || [])[0];
       h += '<section class="card"><span class="h2">Formas de pagamento</span><span class="sub">O que o estúdio aceita. Aparece na página de agendamento e no caixa.</span><div class="chips">' + FORMAS.map((f) => chip(f, 'pgForma', f, fs.indexOf(f) >= 0)).join('') + '</div></section>';
       h += cardMercadoPago(c);
@@ -1513,11 +1515,14 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
         '<div class="grid2"><div class="field"><label for="pg-nome">Nome de quem recebe</label><input id="pg-nome" data-f="pgNome" maxlength="25" value="' + esc(fv('pgNome', px.nome || c.nome || '')) + '"></div>' +
         '<div class="field"><label for="pg-cidade">Cidade</label><input id="pg-cidade" data-f="pgCidade" maxlength="15" value="' + esc(fv('pgCidade', px.cidade || '')) + '"></div></div>' +
         '<span class="tiny">Use o nome e a cidade como estão no seu banco. O app da cliente mostra esse nome antes de pagar.</span></section>';
-      h += '<section class="card"><span class="h2">Sinal pra agendar</span><span class="sub">' + (mpOn() ? 'Ligado, quem agenda pelo link paga uma parte no cartão ou no Pix pelo Mercado Pago. O horário confirma sozinho quando o pagamento é aprovado. Use 100% pra cobrar o valor todo.' : 'Ligado, quem agenda pelo link paga uma parte no Pix pra garantir o horário. O horário fica reservado enquanto a cliente paga, e você confirma na agenda quando o Pix cair.') + '</span>' +
+      h += '<section class="card"><span class="h2">Sinal pra agendar</span><span class="sub">' + (mpOn() ? 'Ligado, quem agenda pelo link paga uma parte no cartão ou no Pix pelo Mercado Pago. O horário confirma sozinho quando o pagamento é aprovado. Cobre uma porcentagem (100% = valor todo) ou um valor fixo.' : 'Ligado, quem agenda pelo link paga uma parte no Pix pra garantir o horário. O horário fica reservado enquanto a cliente paga, e você confirma na agenda quando o Pix cair.') + '</span>' +
         '<div class="chips">' + chip('Desligado', 'pgAtivo', '0', !ativo) + chip('Exigir sinal', 'pgAtivo', '1', ativo) + '</div>' +
-        '<div class="grid2"><div class="field"><label for="pg-pct">Sinal (% do serviço)</label><select id="pg-pct" data-f="pgPct">' + [20, 30, 50, 100].map((n) => '<option value="' + n + '"' + (pctS === n ? ' selected' : '') + '>' + n + '%</option>').join('') + '</select></div>' +
+        '<span class="lbl">Como cobrar o sinal</span><div class="chips">' + chip('Porcentagem', 'pgSinalTipo', 'pct', tipoS !== 'fixo') + chip('Valor fixo', 'pgSinalTipo', 'fixo', tipoS === 'fixo') + '</div>' +
+        '<div class="grid2">' + (tipoS === 'fixo'
+          ? '<div class="field"><label for="pg-valor">Valor do sinal (R$)</label><input id="pg-valor" inputmode="decimal" data-f="pgValor" data-chg="reRender" value="' + esc(fv('pgValor', sn.valor ? String(sn.valor).replace('.', ',') : '')) + '" placeholder="Ex.: 30"></div>'
+          : '<div class="field"><label for="pg-pct">Sinal (% do serviço)</label><select id="pg-pct" data-f="pgPct" data-chg="reRender">' + [10, 20, 30, 40, 50, 100].map((n) => '<option value="' + n + '"' + (pctS === n ? ' selected' : '') + '>' + n + '%</option>').join('') + '</select></div>') +
         '<div class="field"><label for="pg-prazo">Prazo pra pagar</label><select id="pg-prazo" data-f="pgPrazo">' + [15, 30, 60].map((n) => '<option value="' + n + '"' + (String(fv('pgPrazo', sn.prazo || 30)) === String(n) ? ' selected' : '') + '>' + n + ' minutos</option>').join('') + '</select></div></div>' +
-        (s0 ? '<span class="tiny">Exemplo: ' + esc(s0.nome) + ' de ' + brl(s0.preco) + ' → sinal de ' + brl(num(s0.preco) * pctS / 100) + ' ' + (mpOn() ? 'na hora de agendar' : 'no Pix') + ' e o resto no estúdio. Se a cliente faltar, o sinal fica com você.</span>' : '') + '</section>';
+        (s0 ? '<span class="tiny">Exemplo: ' + esc(s0.nome) + ' de ' + brl(s0.preco) + ' → sinal de ' + brl(sinalDe(s0.preco)) + ' ' + (mpOn() ? 'na hora de agendar' : 'no Pix') + ' e o resto no estúdio.' + (tipoS === 'fixo' ? ' Serviço mais barato que o sinal é cobrado inteiro.' : '') + ' Se a cliente faltar, o sinal fica com você.</span>' : '') + '</section>';
       h += '<button type="button" class="btn pri lg full" data-act="pgSalvar">Salvar pagamentos</button>';
       if (px.chave && window.Pix) {
         const codigo = window.Pix.brcode({ tipo: px.tipo, chave: px.chave, nome: px.nome, cidade: px.cidade, valor: 1, txid: 'TESTE' });
@@ -2089,6 +2094,7 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
     },
     pgForma: (el) => { const fs = (S.f.pgFormas || formas()).slice(); const i = fs.indexOf(el.dataset.v); if (i >= 0) { if (fs.length > 1) fs.splice(i, 1); else { toast('Deixe pelo menos uma forma de pagamento.', true); return; } } else fs.push(el.dataset.v); S.f.pgFormas = FORMAS.filter((f) => fs.indexOf(f) >= 0); render(); },
     pgAtivo: (el) => { S.f.pgAtivo = el.dataset.v; render(); },
+    pgSinalTipo: (el) => { S.f.pgSinalTipo = el.dataset.v; render(); },
     mpCartao: (el) => { S.f.mpCartao = el.dataset.v; render(); },
     mpPix: (el) => { S.f.mpPix = el.dataset.v; render(); },
     mpConectar: async () => {
@@ -2116,14 +2122,16 @@ h1,h2,.h2,.top h1,.nome-app{font-family:var(--display);text-transform:none;lette
       const mpCartao = fv('mpCartao', mpc.cartao === false ? '0' : '1') === '1'; const mpPix = fv('mpPix', mpc.pix === false ? '0' : '1') === '1';
       const online = mpOn() && (mpCartao || mpPix);
       if (chave && (!nome || !cidade)) { toast('Preencha o nome e a cidade da chave Pix.', true); return; }
+      const sTipo = fv('pgSinalTipo', sn.tipo === 'fixo' ? 'fixo' : 'pct') === 'fixo' ? 'fixo' : 'pct'; const sValor = Math.round(num(fv('pgValor', sn.valor || 0)) * 100) / 100;
+      if (ativo && sTipo === 'fixo' && !(sValor > 0)) { toast('Informe o valor do sinal em reais.', true); return; }
       if (ativo && !chave && !online) { toast('Pra exigir sinal, conecte o Mercado Pago ou preencha a chave Pix.', true); return; }
       const ok = await salvarCfg({
         mp: { cartao: mpCartao, pix: mpPix, parcelas: num(fv('mpParc', mpc.parcelas || 1)) || 1 },
         formas: S.f.pgFormas || formas(),
         pix: chave ? { tipo: tipo, chave: window.Pix.normalizarChave(tipo, chave), chaveDigitada: chave, nome: nome, cidade: cidade } : null,
-        sinal: { ativo: ativo, pct: num(fv('pgPct', sn.pct || 50)) || 50, prazo: num(fv('pgPrazo', sn.prazo || 30)) || 30 }
+        sinal: { ativo: ativo, tipo: sTipo, valor: sValor, pct: num(fv('pgPct', sn.pct || 50)) || 50, prazo: num(fv('pgPrazo', sn.prazo || 30)) || 30 }
       });
-      if (ok) { ['pgFormas', 'pgTipo', 'pgChave', 'pgNome', 'pgCidade', 'pgAtivo', 'pgPct', 'pgPrazo', 'mpCartao', 'mpPix', 'mpParc'].forEach((k) => { delete S.f[k]; }); toast(ativo ? 'Pronto! O sinal já vale na página de agendamento.' : 'Pagamentos salvos'); render(); }
+      if (ok) { ['pgFormas', 'pgTipo', 'pgChave', 'pgNome', 'pgCidade', 'pgAtivo', 'pgPct', 'pgSinalTipo', 'pgValor', 'pgPrazo', 'mpCartao', 'mpPix', 'mpParc'].forEach((k) => { delete S.f[k]; }); toast(ativo ? 'Pronto! O sinal já vale na página de agendamento.' : 'Pagamentos salvos'); render(); }
     },
     bbSalvar: async () => {
       const c = cfg();
